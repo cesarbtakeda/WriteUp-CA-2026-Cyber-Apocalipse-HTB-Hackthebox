@@ -1,4 +1,5 @@
 # The Forged Signet
+## Resolvido por Joaov1t
 
 ## Informações do desafio
 
@@ -17,7 +18,6 @@
 
 ## Descrição
 
-> A long time ago the Brine Signet was the one thing nobody could fake; it was how the Crown proved a seal was real. Then it broke, and everything went bad. Every seal is still checked against a secret called the First Mark, a hidden string `s` that lives inside the verifier. The verifier has a flaw it was never meant to have: if two inputs differ by exactly the Mark, it cannot tell them apart, so `f(x)` and `f(x XOR s)` always look the same to it. The Registry hid the verifier behind a quantum oracle and swore the Mark was safe. It is not.
 
 ### Tradução
 
