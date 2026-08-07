@@ -1,6 +1,10 @@
+<img width="1419" height="1108" alt="image" src="https://github.com/user-attachments/assets/e48204db-746c-4a57-967a-fe80d861c90d" />
+
 # WriteUp-CA-2026-Cyber-Apocalipse-HTB-Hackthebox
 ## CA-2026-(Cyber-Apocalipse)
 ## CTF-WriteUP
+
+
 
 ## 🔐 LEGAL NOTICE
 USE PERMITTED ONLY IN:
