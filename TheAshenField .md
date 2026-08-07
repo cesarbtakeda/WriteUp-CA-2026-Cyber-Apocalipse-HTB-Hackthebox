@@ -571,5 +571,162 @@ A chave correta é identificada ao descriptografar o AES e validar o padding e o
 - rank e nullity;
 - eliminação de Gauss em `GF(2)`;
 - derivação de chave com SHA-256;
+
+
+```py
+#!/usr/bin/env python3
+import ast
+import hashlib
+import re
+from pathlib import Path
+
+N = 137
+
+
+def aes_ecb_decrypt(key: bytes, ciphertext: bytes) -> bytes:
+    """Decrypt AES-ECB using either PyCryptodome or cryptography."""
+    try:
+        from Crypto.Cipher import AES
+        return AES.new(key, AES.MODE_ECB).decrypt(ciphertext)
+    except ImportError:
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        decryptor = Cipher(algorithms.AES(key), modes.ECB()).decryptor()
+        return decryptor.update(ciphertext) + decryptor.finalize()
+
+
+def pkcs7_unpad(data: bytes, block_size: int = 16) -> bytes:
+    if not data:
+        raise ValueError("empty plaintext")
+    padding = data[-1]
+    if padding < 1 or padding > block_size:
+        raise ValueError("invalid padding")
+    if data[-padding:] != bytes([padding]) * padding:
+        raise ValueError("invalid padding")
+    return data[:-padding]
+
+
+def parse_output(path: str):
+    lines = Path(path).read_text().splitlines()
+    if len(lines) != 3:
+        raise ValueError("output.txt must contain exactly 3 lines")
+
+    public_key_line, encrypted_key_line, encrypted_flag_line = lines
+    public_polynomials = public_key_line[1:-1].split(", ")
+    encrypted_key = ast.literal_eval(encrypted_key_line)
+    encrypted_flag = bytes.fromhex(encrypted_flag_line)
+
+    if len(public_polynomials) != N or len(encrypted_key) != N:
+        raise ValueError("unexpected public key/ciphertext size")
+
+    return public_polynomials, encrypted_key, encrypted_flag
+
+
+def boolean_linearize(polynomial: str):
+    """
+    For bit inputs over GF(2): x^2 = x and x^4 = x.
+    Returns the linear coefficient mask and constant term.
+    """
+    mask = 0
+
+    for variable, _power in re.findall(r"x(\d+)\^(2|4)", polynomial):
+        bit = int(variable) - 1
+        mask ^= 1 << bit
+
+    constant = int(bool(re.search(r"(^| \+ )1($| \+ )", polynomial)))
+    return mask, constant
+
+
+def solve_affine_system(polynomials, ciphertext):
+    # Each row stores [coefficient bit-mask, right-hand side].
+    rows = []
+    for polynomial, output_bit in zip(polynomials, ciphertext):
+        mask, constant = boolean_linearize(polynomial)
+        rows.append([mask, output_bit ^ constant])
+
+    # Reduced row-echelon form over GF(2).
+    pivot_columns = []
+    pivot_row = 0
+
+    for column in range(N):
+        candidate = next(
+            (row for row in range(pivot_row, N) if (rows[row][0] >> column) & 1),
+            None,
+        )
+        if candidate is None:
+            continue
+
+        rows[pivot_row], rows[candidate] = rows[candidate], rows[pivot_row]
+        pivot_mask, pivot_rhs = rows[pivot_row]
+
+        for row in range(N):
+            if row != pivot_row and ((rows[row][0] >> column) & 1):
+                rows[row][0] ^= pivot_mask
+                rows[row][1] ^= pivot_rhs
+
+        pivot_columns.append(column)
+        pivot_row += 1
+
+    for mask, rhs in rows:
+        if mask == 0 and rhs:
+            raise ValueError("inconsistent linear system")
+
+    free_columns = [column for column in range(N) if column not in pivot_columns]
+
+    # Particular solution: set all free variables to zero.
+    particular = 0
+    for row, column in enumerate(pivot_columns):
+        if rows[row][1]:
+            particular |= 1 << column
+
+    # Basis vectors for the kernel/nullspace.
+    kernel_basis = []
+    for free_column in free_columns:
+        vector = 1 << free_column
+        for row, pivot_column in enumerate(pivot_columns):
+            if (rows[row][0] >> free_column) & 1:
+                vector |= 1 << pivot_column
+        kernel_basis.append(vector)
+
+    return particular, kernel_basis, len(pivot_columns), free_columns
+
+
+def main():
+    polynomials, encrypted_key, encrypted_flag = parse_output("output.txt")
+    particular, kernel_basis, rank, free_columns = solve_affine_system(
+        polynomials, encrypted_key
+    )
+
+    print(f"[+] Rank: {rank}")
+    print(f"[+] Nullity: {len(kernel_basis)}")
+    print(f"[+] Free variables: {[column + 1 for column in free_columns]}")
+    print(f"[+] Testing {1 << len(kernel_basis)} candidate keys...")
+
+    for choice in range(1 << len(kernel_basis)):
+        solution = particular
+        for index, basis_vector in enumerate(kernel_basis):
+            if (choice >> index) & 1:
+                solution ^= basis_vector
+
+        # Sage Integer.bits() is little-endian, matching x1 = bit 0, x2 = bit 1, ...
+        key_integer = solution
+        aes_key = hashlib.sha256(str(key_integer).encode()).digest()
+        padded_plaintext = aes_ecb_decrypt(aes_key, encrypted_flag)
+
+        try:
+            plaintext = pkcs7_unpad(padded_plaintext)
+        except ValueError:
+            continue
+
+        if plaintext.startswith(b"HTB{"):
+            print(f"[+] KEY = {key_integer}")
+            print(f"[+] FLAG = {plaintext.decode()}")
+            return
+
+    raise SystemExit("[-] No valid flag found")
+# Solve.py
+
+if __name__ == "__main__":
+    main()
+```
 - descriptografia AES-ECB;
 - padding PKCS#7.
