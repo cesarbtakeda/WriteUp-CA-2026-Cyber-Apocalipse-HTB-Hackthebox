@@ -1,8 +1,14 @@
+
+# PhantomSec: Cesar Augusto B. (t0x1n), DOZZ (Z), Joao Vitor V (Eternal), Gabriel C. (Maestro), Nathan (Parasyte)
+
+#
+
 <img width="1419" height="1108" alt="image" src="https://github.com/user-attachments/assets/e48204db-746c-4a57-967a-fe80d861c90d" />
 
-# WriteUp-CA-2026-Cyber-Apocalipse-HTB-Hackthebox
-## CA-2026-(Cyber-Apocalipse)
-## CTF-WriteUP
+#
+
+## WriteUp-CA-2026-Cyber-Apocalipse-HTB-Hackthebox
+## Rank 271 Resolved By PhantomSec
 
 
 
