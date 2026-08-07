@@ -1,3 +1,5 @@
+## Resolvido por Doz
+
 ### Lore: 
 
 **Initial letters:**
