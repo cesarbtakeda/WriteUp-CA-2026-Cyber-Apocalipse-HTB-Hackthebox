@@ -1,4 +1,5 @@
 # Thermal Receipt — Write-up Completo
+## Resolvido por Doz
 
 ## Informações do desafio
 
