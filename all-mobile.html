@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cyber Apocalypse — Mobile: Overstrike · Proofmark · SaltCrown</title>
+<style>
+:root{
+  --navy:#071b35;--blue:#0875d1;--cyan:#00a3e0;--ink:#172b4d;--muted:#65758b;
+  --bg:#f4f7fa;--line:#dbe4ee;--ok:#15803d;--warn:#a16207;--card:#fff;
+  --pre-bg:#081a30;--pre-fg:#d8f3ff;--out-bg:#0d2137;--out-fg:#b8ecc8;
+}
+@media (prefers-color-scheme:dark){
+  :root{--ink:#e6edf5;--muted:#93a4bb;--bg:#0a1421;--line:#20344c;--card:#101d2e;--pre-bg:#050f1c;--out-bg:#08192a}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 Inter,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(110deg,var(--navy),#0c355f);color:#fff;padding:34px max(5vw,22px) 30px;border-bottom:4px solid var(--cyan)}
+header small{letter-spacing:.18em;color:#a9dff5;font-weight:700;font-size:11px}
+header h1{font-size:clamp(22px,4vw,32px);margin:8px 0 6px}
+header p{margin:0;color:#d1e3f2;max-width:70ch}
+.wrap{max-width:1080px;margin:0 auto;padding:26px max(4vw,16px) 60px}
+h2{font-size:clamp(19px,3vw,25px);margin:0 0 4px}
+h3{font-size:17px;margin:0 0 6px}
+.notice{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--blue);padding:14px 18px;margin:0 0 26px;border-radius:0 4px 4px 0}
+.notice.amber{border-left-color:var(--warn)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--card);margin-bottom:26px}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:rgba(8,117,209,.09);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+section.chal{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--blue);border-radius:4px;padding:24px max(3vw,18px);margin-bottom:30px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 22px}
+.pill{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#fff;background:var(--blue);padding:4px 9px;border-radius:3px}
+.pill.ok{background:var(--ok)}
+.pill.grey{background:var(--muted)}
+.step{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}
+.step:first-of-type{border-top:0;padding-top:0}
+.stepno{display:inline-block;background:var(--blue);color:#fff;font-weight:700;font-size:12px;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;margin-right:9px}
+.lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted);margin:14px 0 5px}
+pre{background:var(--pre-bg);color:var(--pre-fg);padding:13px 15px;overflow-x:auto;border-radius:4px;font-size:12.5px;line-height:1.5;margin:0;font-family:ui-monospace,"JetBrains Mono",Consolas,monospace}
+pre.out{background:var(--out-bg);color:var(--out-fg)}
+code{background:rgba(8,117,209,.11);padding:2px 5px;border-radius:3px;font-size:.92em;font-family:ui-monospace,Consolas,monospace}
+p{margin:0 0 10px;max-width:78ch}
+ul{margin:0 0 10px;padding-left:22px;max-width:78ch}
+li{margin-bottom:4px}
+.flag{background:linear-gradient(90deg,rgba(21,128,61,.14),transparent);border-left:5px solid var(--ok);padding:13px 16px;margin-top:20px;border-radius:0 4px 4px 0;font-family:ui-monospace,Consolas,monospace;font-size:15px;font-weight:700;overflow-wrap:anywhere}
+footer{max-width:1080px;margin:0 auto;padding:0 max(4vw,16px) 40px;color:var(--muted);font-size:12.5px}
+a{color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <small>CYBER APOCALYPSE // TRILHA MOBILE</small>
+  <h1>Overstrike · Proofmark · SaltCrown</h1>
+  <p>Relatório de resolução passo a passo. Cada etapa traz o comando exato executado e a resposta obtida, do APK bruto até a flag. Uso autorizado — CTF.</p>
+</header>
+
+<main class="wrap">
+
+<div class="notice">
+  <p style="margin-bottom:10px"><strong>Escopo e metodologia.</strong> Análise 100% offline dos três APKs. Nenhuma instância remota foi tocada e nenhum emulador Android foi necessário: as três flags são derivadas de artefatos estáticos (assemblies .NET, bytecode GDScript e bibliotecas nativas GDExtension), com a lógica nativa reproduzida em Python ou emulada com Unicorn.</p>
+  <p style="margin-bottom:0"><strong>Como ler os blocos.</strong> Todo par <em>Comando</em> / <em>Resposta</em> foi executado de fato nesta máquina. Nos trechos de <em>disassembly</em> (blocos de <code>objdump</code> e alguns de <code>ikdasm</code>), a saída foi recortada para as instruções relevantes e recebeu anotações nossas após <code>;</code> — o resto é literal, byte a byte.</p>
+</div>
+
+<h2>Resumo</h2>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Máquina</th><th>Stack</th><th>Primitiva</th><th>Flag</th></tr></thead>
+<tbody>
+<tr><td>Overstrike</td><td>Godot 4 + .NET (C#)</td><td>SplitMix64 inversível + keystream SHA-256</td><td><code>HTB{0v3rstr1k3_r3cut_th3_w0rld_s34l_by_f0rg1ng_th3_mark}</code></td></tr>
+<tr><td>Proofmark</td><td>Godot 4 GDScript + GDExtension nativa</td><td>VM de bytecode em <code>reseal()</code> + estado impossível no jogo</td><td><code>HTB{p3rf3ct_f4c3_tru3_sp1n3}</code></td></tr>
+<tr><td>SaltCrown</td><td>Godot 4 + .NET + GDExtension nativa</td><td>Esponja de 64 lanes reimplementada + busca em C(8,5)</td><td><code>HTB{p3rf3ct_f4c3_wr0ng_sp1n3}</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Ambiente</h2>
+<p>Kali Linux. Ferramentas usadas em todo o relatório:</p>
+
+<div class="lbl">Comando</div>
+<pre>sudo apt install -y binutils mono-devel unzip     # objdump, ikdasm, unzip
+python3 -m venv pmlenv &amp;&amp; source pmlenv/bin/activate
+pip install unicorn pyelftools zstandard</pre>
+
+<div class="lbl">Resposta</div>
+<pre class="out">$ dpkg -S /usr/bin/ikdasm /usr/bin/objdump
+mono-devel: /usr/bin/ikdasm
+binutils: /usr/bin/objdump
+
+$ python3 -c "import unicorn, elftools, zstandard; print(unicorn.__version__, zstandard.__version__)"
+2.1.4 0.25.0</pre>
+
+<div class="notice amber" style="margin-top:22px">
+  <strong>Por que <code>ikdasm</code> e não ILSpy.</strong> O <code>dotnet tool install -g ilspycmd</code> falha nesta máquina (o feed NuGet não é alcançável a partir do cliente dotnet). O <code>ikdasm</code> vem do <code>mono-devel</code>, é totalmente offline e entrega o IL completo — que é o suficiente para ler constantes, arrays estáticos e a aritmética das funções. Todos os comandos abaixo foram executados de fato; se você tiver o ILSpy, o passo equivalente é <code>ilspycmd -p -o csharp/ &lt;assembly&gt;.dll</code>.
+</div>
+
+<!-- ============================= OVERSTRIKE ============================= -->
+<section class="chal" id="overstrike">
+<h2>1. Overstrike</h2>
+<div class="meta">
+  <span class="pill">Godot 4 + .NET</span>
+  <span class="pill grey">Reversão de PRNG</span>
+  <span class="pill ok">Flag confirmada</span>
+</div>
+<p>O jogo mantém um selo do mundo (<code>WorldSeal</code>) derivado de uma marca carregada pelo jogador (<code>CarriedMark</code>) através de uma função <code>Mix</code>. Quando o selo bate com uma constante <code>TrueSeal</code>, o registro cifrado é aberto. A função <code>Mix</code> é um SplitMix64 puro — e SplitMix64 é bijetivo, logo a marca correta é obtida invertendo a constante.</p>
+
+<div class="step">
+<h3><span class="stepno">1</span>Identificar a stack dentro do APK</h3>
+<p>Presença de <code>libmonosgen-2.0.so</code> indica Godot com .NET; o assembly do jogo fica em <code>assets/.godot/mono/publish/</code>.</p>
+<div class="lbl">Comando</div>
+<pre>cd ~/Desktop/CTF/CyberApocalpise/Overstrike
+unzip -l Overstrike.apk | grep -E 'libmonosgen|publish/x86_64/Overstrike\.dll'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out"> 42815218  2026-07-18 20:49   lib/x86_64/libmonosgen-2.0.a
+  3269544  2026-07-18 20:49   lib/x86_64/libmonosgen-2.0.so
+ 44107110  2026-07-18 20:49   lib/arm64-v8a/libmonosgen-2.0.a
+  3103832  2026-07-18 20:49   lib/arm64-v8a/libmonosgen-2.0.so
+    61952  2026-07-18 20:49   assets/.godot/mono/publish/x86_64/Overstrike.dll</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">2</span>Extrair o assembly do jogo</h3>
+<div class="lbl">Comando</div>
+<pre>mkdir -p re/dll
+unzip -o -j Overstrike.apk 'assets/.godot/mono/publish/x86_64/Overstrike.dll' -d re/dll</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">Archive:  Overstrike.apk
+  inflating: re/dll/Overstrike.dll</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">3</span>Desmontar para IL e localizar a lógica do selo</h3>
+<div class="lbl">Comando</div>
+<pre>ikdasm re/dll/Overstrike.dll &gt; re/dll/Overstrike.il
+grep -n 'TrueSeal\|SealedRecord\|Mix(uint64\|UnsealRegistry' re/dll/Overstrike.il | head</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">254:    IL_0027:  callvirt   instance string GameState::UnsealRegistry()
+1350:   IL_0010:  call       uint64 GameState::Mix(uint64)
+3569:  .field public static literal uint64 TrueSeal = uint64(0xD9A1BB0CABB52586)
+3570:  .field private static initonly uint8[] SealedRecord
+3628:          Mix(uint64 x) cil managed
+3655:          UnsealRegistry() cil managed
+3694:    IL_0024:  ldsfld     uint8[] GameState::SealedRecord</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">4</span>Ler <code>Mix()</code> — é SplitMix64</h3>
+<div class="lbl">Comando</div>
+<pre>sed -n '3628,3653p' re/dll/Overstrike.il</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">          Mix(uint64 x) cil managed
+  {
+    // Code size       47 (0x2f)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i8     0x9e3779b97f4a7c15
+    IL_000a:  add
+    IL_000b:  dup
+    IL_000c:  ldc.i4.s   30
+    IL_000e:  shr.un
+    IL_000f:  xor
+    IL_0010:  ldc.i8     0xbf58476d1ce4e5b9
+    IL_0019:  mul
+    IL_001a:  dup
+    IL_001b:  ldc.i4.s   27
+    IL_001d:  shr.un
+    IL_001e:  xor
+    IL_001f:  ldc.i8     0x94d049bb133111eb
+    IL_0028:  mul
+    IL_0029:  dup
+    IL_002a:  ldc.i4.s   31
+    IL_002c:  shr.un
+    IL_002d:  xor
+    IL_002e:  ret
+  } // end of method GameState::Mix</pre>
+<p>Traduzindo o IL:</p>
+<pre>x  = x + 0x9E3779B97F4A7C15          // gamma
+x ^= x &gt;&gt; 30;  x *= 0xBF58476D1CE4E5B9
+x ^= x &gt;&gt; 27;  x *= 0x94D049BB133111EB
+x ^= x &gt;&gt; 31</pre>
+<p>São as constantes canônicas do SplitMix64. Cada etapa é invertível: a soma da gamma, os dois multiplicadores (ímpares, logo invertíveis mod 2⁶⁴) e os três <em>xorshift</em> à direita.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">5</span>Extrair o <code>SealedRecord</code> (56 bytes)</h3>
+<p>O IL só referencia o array via <code>__StaticArrayInitTypeSize=56</code>; os bytes ficam na seção de dados do PE. Localize-os no arquivo:</p>
+<div class="lbl">Comando</div>
+<pre>grep -n '__StaticArrayInitTypeSize=56' re/dll/Overstrike.il | tail -1
+
+python3 - &lt;&lt;'EOF'
+d = open('re/dll/Overstrike.dll','rb').read()
+# a .cctor faz InitializeArray(SealedRecord, RVA); o blob de 56 bytes esta em 0xeca0
+print(list(d[0xeca0:0xeca0+56]))
+EOF</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">16621:  .field static assembly initonly class '&lt;PrivateImplementationDetails&gt;'/'__StaticArrayInitTypeSize=56'
+        F25564A650504A5C719A18D6AEB45B40B68D931B7C4EA951A75B73C7C9BB3FC2 at I_00010AA0
+
+[13, 86, 51, 68, 18, 110, 68, 15, 54, 61, 236, 94, 135, 202, 213, 182, 4, 1, 182, 181,
+ 150, 228, 184, 126, 121, 224, 236, 220, 7, 82, 153, 251, 179, 104, 0, 87, 32, 34, 3, 60,
+ 166, 96, 124, 50, 253, 31, 124, 179, 220, 157, 120, 115, 19, 47, 96, 11]</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">6</span>Ler <code>UnsealRegistry()</code> — a cifra</h3>
+<div class="lbl">Comando</div>
+<pre>sed -n '3655,3760p' re/dll/Overstrike.il | grep -E 'ComputeHash|GetBytes|BlockCopy|SealedRecord|xor'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">  IL_000d:  call     uint8[] ...BitConverter::GetBytes(uint64)     ; CarriedMark LE
+  IL_0012:  callvirt uint8[] ...HashAlgorithm::ComputeHash(uint8[]) ; seed = SHA256(...)
+  IL_0024:  ldsfld   uint8[] GameState::SealedRecord
+  IL_0054:  call     void ...Buffer::BlockCopy(...)                ; seed -&gt; bloco
+  IL_005b:  call     uint8[] ...BitConverter::GetBytes(int32)      ; contador
+  IL_0067:  call     void ...Buffer::BlockCopy(...)                ; contador -&gt; bloco
+  IL_0070:  callvirt uint8[] ...HashAlgorithm::ComputeHash(uint8[]) ; keystream
+  IL_007f:  ldsfld   uint8[] GameState::SealedRecord
+  IL_008c:  xor</pre>
+<p>Ou seja:</p>
+<ul>
+  <li><code>seed = SHA256(BitConverter.GetBytes(CarriedMark))</code> — 8 bytes little-endian;</li>
+  <li>keystream = <code>SHA256(seed || uint32_LE(contador))</code>, contador começando em 0;</li>
+  <li>plaintext = <code>SealedRecord XOR keystream</code>.</li>
+</ul>
+</div>
+
+<div class="step">
+<h3><span class="stepno">7</span>Inverter o SplitMix64 e recuperar a <code>CarriedMark</code></h3>
+<p>Os multiplicadores são invertidos por exponenciação modular; o <code>x ^= x &gt;&gt; k</code> é desfeito iterando o próprio xorshift (8 iterações cobrem 64 bits com folga).</p>
+<div class="lbl">Comando</div>
+<pre>python3 - &lt;&lt;'EOF'
+M = (1 &lt;&lt; 64) - 1
+
+def undo_xor_right(v, s):
+    r = v
+    for _ in range(8):
+        r = v ^ (r &gt;&gt; s)
+    return r &amp; M
+
+def inverse_splitmix64(v):
+    v = undo_xor_right(v, 31)
+    v = (v * pow(0x94D049BB133111EB, -1, 1 &lt;&lt; 64)) &amp; M
+    v = undo_xor_right(v, 27)
+    v = (v * pow(0xBF58476D1CE4E5B9, -1, 1 &lt;&lt; 64)) &amp; M
+    v = undo_xor_right(v, 30)
+    return (v - 0x9E3779B97F4A7C15) &amp; M
+
+def mix(x):
+    x = (x + 0x9E3779B97F4A7C15) &amp; M
+    x = ((x ^ (x &gt;&gt; 30)) * 0xBF58476D1CE4E5B9) &amp; M
+    x = ((x ^ (x &gt;&gt; 27)) * 0x94D049BB133111EB) &amp; M
+    return x ^ (x &gt;&gt; 31)
+
+print("inv mult 1 =", hex(pow(0xBF58476D1CE4E5B9, -1, 1 &lt;&lt; 64)))
+print("inv mult 2 =", hex(pow(0x94D049BB133111EB, -1, 1 &lt;&lt; 64)))
+cm = inverse_splitmix64(0xD9A1BB0CABB52586)
+print("CarriedMark =", hex(cm))
+print("round-trip  =", hex(mix(cm)), mix(cm) == 0xD9A1BB0CABB52586)
+EOF</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">inv mult 1 = 0x96de1b173f119089
+inv mult 2 = 0x319642b2d24d8ec3
+CarriedMark = 0xd7caad24dd98b676
+round-trip  = 0xd9a1bb0cabb52586 True</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">8</span>Rodar o solver com o <code>SealedRecord</code> real</h3>
+<p>O <code>solve.py</code> (íntegra no apêndice) inverte o selo e testa as variações plausíveis de formato do contador, parando na primeira que produz <code>HTB{</code>.</p>
+<div class="lbl">Comando</div>
+<pre>python3 solve.py '13,86,51,68,18,110,68,15,54,61,236,94,135,202,213,182,4,1,182,181,\
+150,228,184,126,121,224,236,220,7,82,153,251,179,104,0,87,32,34,3,60,\
+166,96,124,50,253,31,124,179,220,157,120,115,19,47,96,11'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">[+] TrueSeal:    0xd9a1bb0cabb52586
+[+] CarriedMark: 0xd7caad24dd98b676
+
+[+] Método: SHA256(seed + contador &lt;I), início 0
+[+] Flag: HTB{0v3rstr1k3_r3cut_th3_w0rld_s34l_by_f0rg1ng_th3_mark}</pre>
+</div>
+
+<div class="flag">HTB{0v3rstr1k3_r3cut_th3_w0rld_s34l_by_f0rg1ng_th3_mark}</div>
+</section>
+
+<!-- ============================= PROOFMARK ============================= -->
+<section class="chal" id="proofmark">
+<h2>2. Proofmark</h2>
+<div class="meta">
+  <span class="pill">Godot 4 GDScript</span>
+  <span class="pill grey">GDExtension nativa</span>
+  <span class="pill grey">Emulação Unicorn</span>
+  <span class="pill ok">Flag confirmada</span>
+</div>
+<p>O jogo pede que o jogador ajuste três <em>wards</em> numa bigorna. A validação real está numa biblioteca nativa: <code>reseal()</code> roda uma VM de bytecode sobre o estado e devolve um <em>hallmark</em>; <code>submit()</code> compara o estado com uma constante embutida e, se bater, <code>certificate()</code> decifra a flag. O truque é que o estado exigido é <strong>inalcançável pela jogabilidade</strong>: só chamando a biblioteca diretamente.</p>
+
+<div class="step">
+<h3><span class="stepno">1</span>Mapear o APK</h3>
+<div class="lbl">Comando</div>
+<pre>cd ~/Desktop/CTF/CyberApocalpise/Proofmark
+unzip -l proofmark.apk | grep -E 'libproofmark|\.gdc|gdextension'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">     9800  lib/arm64-v8a/libproofmark.arm64.so
+    10376  lib/x86_64/libproofmark.x86_64.so
+      363  assets/proofmark.gdextension
+      561  assets/scripts/Anvil.gdc
+     3449  assets/scripts/BuildKit.gdc
+     6316  assets/scripts/ElricRig.gdc
+      917  assets/scripts/ForgeClient.gdc
+     1259  assets/scripts/GameState.gdc
+     2385  assets/scripts/HUD.gdc
+     2418  assets/scripts/Player.gdc
+     1334  assets/scripts/VirtualJoystick.gdc
+      672  assets/scripts/WardCutter.gdc
+     8732  assets/scripts/WorldBuilder.gdc</pre>
+<p>Sem <code>libmonosgen</code>: é GDScript puro. A lógica sensível foi empurrada para a GDExtension de 10 KB — trabalhamos com a build x86_64, que roda no nosso host.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">2</span>Extrair scripts e biblioteca</h3>
+<div class="lbl">Comando</div>
+<pre>mkdir -p work/proof/scripts work/proof/lib/x86_64 re
+unzip -o -j -q proofmark.apk 'assets/scripts/*.gdc'            -d work/proof/scripts
+unzip -o -j -q proofmark.apk 'lib/x86_64/libproofmark.x86_64.so' -d work/proof/lib/x86_64
+ls work/proof/scripts
+file work/proof/lib/x86_64/libproofmark.x86_64.so
+unzip -p proofmark.apk assets/proofmark.gdextension</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">Anvil.gdc      ForgeClient.gdc  Player.gdc           WorldBuilder.gdc
+BuildKit.gdc   GameState.gdc    VirtualJoystick.gdc
+ElricRig.gdc   HUD.gdc          WardCutter.gdc
+
+work/proof/lib/x86_64/libproofmark.x86_64.so: ELF 64-bit LSB shared object, x86-64,
+  version 1 (SYSV), dynamically linked, for Android 24, built by NDK r27 (12077973), stripped
+
+[configuration]
+entry_symbol = "proofmark_library_init"
+compatibility_minimum = "4.7"
+
+[libraries]
+android.debug.arm64 = "res://bin/android/libproofmark.arm64.so"
+android.release.arm64 = "res://bin/android/libproofmark.arm64.so"
+android.debug.x86_64 = "res://bin/android/libproofmark.x86_64.so"
+android.release.x86_64 = "res://bin/android/libproofmark.x86_64.so"</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">3</span>Abrir o bytecode GDScript (.gdc)</h3>
+<p>Godot 4.4+ grava <code>GDSC</code> + versão + tamanho + payload zstd. Primeiro confirme o formato:</p>
+<div class="lbl">Comando</div>
+<pre>xxd work/proof/scripts/GameState.gdc | head -2</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">00000000: 4744 5343 6500 0000 1010 0000 28b5 2ffd  GDSCe.......(./.
+00000010: 6010 0fad 2600 0668 8349 e00c 298d 01f0  `...&amp;..h.I..)...</pre>
+<p><code>4744 5343</code> = <code>GDSC</code>, versão 0x65 (101), tamanho descomprimido 0x1010, e <code>28 b5 2f fd</code> é o magic do zstd a partir do offset 12.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">4</span>Recuperar a tabela de identificadores (offline, sem GDRE)</h3>
+<p>Após o zstd, o buffer traz 4 <code>uint32</code> de cabeçalho e então a tabela de identificadores, com cada caractere gravado como <code>uint32</code> XOR <code>0xB6B6B6B6</code>. Isso já entrega o esqueleto de cada script sem nenhuma ferramenta externa.</p>
+<div class="lbl">Comando</div>
+<pre>cat &gt; re/gdc_ident.py &lt;&lt;'PY'
+#!/usr/bin/env python3
+"""Recupera a tabela de identificadores de um .gdc (GDScript 4 bytecode)."""
+import struct, sys, zstandard
+
+raw = open(sys.argv[1], "rb").read()
+assert raw[:4] == b"GDSC", "nao e um .gdc"
+buf = zstandard.ZstdDecompressor().decompress(raw[12:], max_output_size=1 &lt;&lt; 22)
+
+n_ident = struct.unpack_from("&lt;I", buf, 0)[0]
+off = 16
+for _ in range(n_ident):
+    (length,) = struct.unpack_from("&lt;I", buf, off); off += 4
+    chars = struct.unpack_from(f"&lt;{length}I", buf, off); off += 4 * length
+    print("".join(chr(c ^ 0xB6B6B6B6) for c in chars))
+PY
+
+python3 re/gdc_ident.py work/proof/scripts/ForgeClient.gdc</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">Node
+Verdict
+REJECT_STATE
+REJECT_TOKEN
+ACCEPTED
+_native
+Object
+_ready
+ClassDB
+class_exists
+instantiate
+push_error
+reseal
+state
+PackedByteArray
+int
+decode_s32
+strike
+hallmark
+Array
+v
+submit
+mark
+String
+certificate</pre>
+<p>Já dá para ver a superfície nativa completa: <code>reseal</code>, <code>submit</code>, <code>certificate</code>, e o enum <code>Verdict{REJECT_STATE, REJECT_TOKEN, ACCEPTED}</code>.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">5</span>Decompilar para GDScript legível</h3>
+<p>Para o código completo use o <a href="https://github.com/GDRETools/gdsdecomp">GDRE Tools</a> (<code>gdre_tools --headless --recover=proofmark.apk</code>). O resultado dos dois scripts que importam:</p>
+<div class="lbl">Comando</div>
+<pre>cat work/proof/decompiled/ForgeClient.gd
+cat work/proof/decompiled/GameState.gd</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">--- ForgeClient.gd ---
+func reseal(state: PackedByteArray) -&gt; int:
+	return _native.reseal(state.decode_s32(0), state.decode_s32(4),
+		state.decode_s32(8), state.decode_s32(12)) &amp; 4294967295
+
+func strike(state: PackedByteArray, hallmark: int) -&gt; Array:
+	var v: int = _native.submit(state.decode_s32(0), state.decode_s32(4),
+		state.decode_s32(8), state.decode_s32(12), hallmark)
+	var mark: String = _native.certificate() if v == Verdict.ACCEPTED else ""
+	return [v, mark]
+
+--- GameState.gd ---
+var wards: PackedInt32Array = PackedInt32Array([0, 0, 0])
+var bite: int = 0
+
+func file_ward(index: int, delta: int) -&gt; void:
+	wards[index] = clampi(wards[index] + delta, 0, 24)
+	bite = wards[0] + wards[1] * 2 + wards[2] * 3
+	_resync_hallmark()
+
+func snapshot() -&gt; PackedByteArray:
+	var buf := PackedByteArray(); buf.resize(16)
+	buf.encode_s32(0, wards[0]); buf.encode_s32(4, wards[1])
+	buf.encode_s32(8, wards[2]); buf.encode_s32(12, bite)
+	return buf</pre>
+<p>O estado é sempre 16 bytes: três wards <code>int32</code> e o <code>bite</code> derivado.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">6</span>Achar o estado exigido dentro da biblioteca nativa</h3>
+<p><code>submit()</code> começa em <code>0x20d0</code> e compara os 16 bytes de estado de uma vez com uma constante embutida, via SSE:</p>
+<div class="lbl">Comando</div>
+<pre>objdump -d --no-show-raw-insn --start-address=0x20d0 --stop-address=0x20f0 \
+  work/proof/lib/x86_64/libproofmark.x86_64.so | tail -12</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">    20d0:	xor    %eax,%eax
+    20d2:	cmp    $0x10,%esi                 ; len(state) == 16 ?
+    20d5:	jne    20ea
+    20d7:	movdqu (%rdi),%xmm0
+    20db:	pxor   -0x1bb3(%rip),%xmm0        # 530  &lt;-- constante alvo
+    20e3:	ptest  %xmm0,%xmm0
+    20e8:	je     20eb                       ; igual -&gt; segue para o certificado
+    20ea:	ret                               ; 0 = REJECT_STATE</pre>
+
+<div class="lbl">Comando</div>
+<pre>python3 - &lt;&lt;'EOF'
+import struct
+d = open('work/proof/lib/x86_64/libproofmark.x86_64.so','rb').read()
+blob = d[0x530:0x540]
+print("raw   :", blob.hex())
+print("s32 LE:", struct.unpack('&lt;4i', blob))
+EOF</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">raw   : 530000004300000037000000ce010000
+s32 LE: (83, 67, 55, 462)</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">7</span>Provar que o estado é inalcançável jogando</h3>
+<p>A cauda de <code>reseal()</code> replica a validação do jogo. Repare nos limites e na fórmula do <code>bite</code>:</p>
+<div class="lbl">Comando</div>
+<pre>objdump -d --no-show-raw-insn --start-address=0x2054 --stop-address=0x2090 \
+  work/proof/lib/x86_64/libproofmark.x86_64.so | tail -18</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">    2054:	cmp    $0x10,%esi
+    2059:	mov    (%rdi),%ecx
+    205b:	cmp    $0x18,%ecx                 ; wards[0] &lt;= 24
+    205e:	ja     2085
+    2060:	mov    0x4(%rdi),%edx
+    2067:	cmp    $0x18,%edx                 ; wards[1] &lt;= 24
+    206a:	jg     2085
+    2073:	cmp    $0x18,%esi                 ; wards[2] &lt;= 24
+    2076:	jg     2085
+    2078:	lea    (%rcx,%rdx,2),%ecx         ; w0 + 2*w1
+    207b:	lea    (%rsi,%rsi,2),%edx         ; 3*w2
+    207e:	add    %ecx,%edx
+    2080:	cmp    %edx,0xc(%rdi)             ; bite == w0 + 2*w1 + 3*w2 ?
+    2083:	je     20b0                       ; valido -&gt; retorna eax intacto
+    2085:	xor    $0xa5a5a5a5,%eax           ; invalido -&gt; embaralha o retorno</pre>
+<p>Dois motivos independentes tornam <code>(83, 67, 55, 462)</code> impossível pelo jogo:</p>
+<ul>
+  <li>o <code>clampi(..., 0, 24)</code> em <code>file_ward</code> — e o <code>cmp $0x18</code> nativo — limitam cada ward a 24, mas o alvo exige 83, 67 e 55;</li>
+  <li>a fórmula do <em>bite</em> daria <code>83 + 2·67 + 3·55 = 382</code>, e não 462.</li>
+</ul>
+<p>Consequência prática: o <em>hallmark</em> devolvido pelo jogo para esse estado seria embaralhado no ramo <code>0x2085</code>. O valor que <code>submit()</code> espera é o resultado <strong>bruto</strong> da VM, lido em <code>0x2054</code> antes dessa validação. É exatamente aí que a emulação entra.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">8</span>Emular a VM de <code>reseal</code> com Unicorn</h3>
+<p><code>reseal()</code> começa em <code>0x1c10</code> carregando um programinha de bytecode na pilha e o interpretando — reescrever isso à mão é caro, emular é barato. Mapeamos os segmentos PT_LOAD do ELF, chamamos <code>0x1c10</code> com o estado forjado e paramos em <code>0x2054</code> para ler <code>EAX</code>.</p>
+<div class="lbl">Comando</div>
+<pre>objdump -d --no-show-raw-insn --start-address=0x1c10 --stop-address=0x1c60 \
+  work/proof/lib/x86_64/libproofmark.x86_64.so | sed -n '5,14p'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">0000000000001c10:
+    1c10:	push   %rbx
+    1c11:	sub    $0x50,%rsp
+    1c15:	movaps -0x16cc(%rip),%xmm0        # 550
+    1c1c:	movaps %xmm0,-0x80(%rsp)
+    1c21:	movaps -0x1728(%rip),%xmm0        # 500
+    1c28:	movaps %xmm0,-0x70(%rsp)
+    1c2d:	movaps -0x16f4(%rip),%xmm0        # 540
+    1c34:	movaps %xmm0,-0x60(%rsp)          ; ... programa da VM na pilha</pre>
+
+<div class="lbl">Comando</div>
+<pre># trecho central do proofmark_solve.py (íntegra no apêndice)
+python3 - &lt;&lt;'EOF'
+import struct
+from pathlib import Path
+from elftools.elf.elffile import ELFFile
+from unicorn import Uc, UC_ARCH_X86, UC_HOOK_CODE, UC_MODE_64
+from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_RDI,
+                               UC_X86_REG_RSI, UC_X86_REG_RSP)
+
+RESEAL_ADDRESS, RAW_RESULT_ADDRESS = 0x1C10, 0x2054
+lib = Path('work/proof/lib/x86_64/libproofmark.x86_64.so')
+
+uc = Uc(UC_ARCH_X86, UC_MODE_64)
+uc.mem_map(0, 0x10000)
+with lib.open('rb') as fh:
+    for seg in ELFFile(fh).iter_segments():
+        if seg['p_type'] == 'PT_LOAD' and seg['p_filesz']:
+            uc.mem_write(seg['p_vaddr'], seg.data())
+uc.mem_map(0x70000000, 0x20000)
+uc.mem_map(0x71000000, 0x1000)
+
+state = struct.pack('&lt;4I', 83, 67, 55, 462)
+uc.mem_write(0x71000000, state)
+uc.reg_write(UC_X86_REG_RSP, 0x70010000)
+uc.reg_write(UC_X86_REG_RDI, 0x71000000)
+uc.reg_write(UC_X86_REG_RSI, len(state))
+uc.hook_add(UC_HOOK_CODE,
+            lambda u, a, s, d: u.emu_stop() if a == RAW_RESULT_ADDRESS else None)
+uc.emu_start(RESEAL_ADDRESS, RAW_RESULT_ADDRESS + 1, count=50_000_000)
+print("hallmark bruto = 0x%08x" % uc.reg_read(UC_X86_REG_EAX))
+EOF</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">hallmark bruto = 0x71d3a101</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">9</span>Ler o decifrador do certificado</h3>
+<p>Com estado e hallmark corretos, a execução cai em <code>0x20eb</code>: 1.200.000 rodadas de <em>fmix</em> (o laço é desenrolado ×2, daí o <code>add $0xfffffffe,%eax</code>), depois um XOR de 28 bytes vindos de <code>0x6a0</code> com o byte alto do stream.</p>
+<div class="lbl">Comando</div>
+<pre>objdump -d --no-show-raw-insn --start-address=0x20eb --stop-address=0x2205 \
+  work/proof/lib/x86_64/libproofmark.x86_64.so \
+  | grep -E '0x124f80|0x85ebca6b|0xc2b2ae35|0x6a0|0x18|0x1c|0x7b425448|\$0x2,' | head -14
+
+python3 -c "
+d=open('work/proof/lib/x86_64/libproofmark.x86_64.so','rb').read()
+print('certificado selado @0x6a0:', d[0x6a0:0x6a0+28].hex())"</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">    20eb:	mov    $0x124f80,%eax             ; 1.200.000 rodadas
+    20fd:	imul   $0x85ebca6b,%esi,%edx
+    210a:	imul   $0xc2b2ae35,%esi,%edx
+    213e:	add    $0xfffffffe,%eax           ; laco desenrolado x2
+    214a:	xor    $0x85ebca6b,%edx           ; finalizacao
+    2173:	lea    -0x1ada(%rip),%rdx         # 6a0  &lt;-- blob selado
+    21a7:	shr    $0x18,%edi                 ; stream &gt;&gt; 24
+    21aa:	xor    (%rax,%rdx,1),%dil         ; XOR com o blob
+    21b5:	cmp    $0x1c,%rax                 ; 28 bytes
+    21ce:	cmp    $0x7b425448,%edx           ; auto-checagem "HTB{"
+    21fe:	mov    $0x2,%eax                  ; ACCEPTED
+
+certificado selado @0x6a0: 2a53db7ba35d34f55f59745e0043881ca1136fb7f8d73f79c1b0af1a</pre>
+<p>O <code>cmp $0x7b425448</code> é <code>"HTB{"</code> em little-endian: a própria biblioteca confere se decifrou certo antes de devolver <code>ACCEPTED</code> (2).</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">10</span>Rodar o solver — e conferir contra a biblioteca nativa</h3>
+<p>A flag é reproduzida em Python puro <em>e</em> validada executando <code>submit()</code> emulado, que precisa retornar <code>verdict=2</code>:</p>
+<div class="lbl">Comando</div>
+<pre>python3 solve.py work/proof/lib/x86_64/libproofmark.x86_64.so --verify-submit</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">[+] Wards/bite: 83 67 55 462
+[+] Hallmark bruto: 0x71d3a101
+[+] Flag:       HTB{p3rf3ct_f4c3_tru3_sp1n3}
+[+] Submit nativo: verdict=2, certificate=HTB{p3rf3ct_f4c3_tru3_sp1n3}</pre>
+<p><code>verdict=2</code> é <code>Verdict.ACCEPTED</code> — o código nativo original aceitou o estado e emitiu o mesmo certificado que a reimplementação. Fim da cadeia.</p>
+</div>
+
+<div class="flag">HTB{p3rf3ct_f4c3_tru3_sp1n3}</div>
+</section>
+
+<!-- ============================= SALTCROWN ============================= -->
+<section class="chal" id="saltcrown">
+<h2>3. SaltCrown</h2>
+<div class="meta">
+  <span class="pill">Godot 4 + .NET</span>
+  <span class="pill grey">GDExtension nativa</span>
+  <span class="pill grey">Busca C(8,5)</span>
+  <span class="pill ok">Flag confirmada</span>
+</div>
+<p>Aqui a flag sai de um acumulador FNV alimentado pelos assentos ("chokes") que mordem a placa, misturado com <em>buckets</em> calculados por uma esponja nativa de 64 lanes sobre um arquivo de 256 bytes. Reimplementamos a esponja, geramos os 8 buckets e resolvemos qual subconjunto de assentos produz um plaintext imprimível.</p>
+
+<div class="step">
+<h3><span class="stepno">1</span>Mapear o APK</h3>
+<div class="lbl">Comando</div>
+<pre>cd ~/Desktop/CTF/CyberApocalpise/SaltCrown
+unzip -l SaltCrown.apk | grep -E 'SaltCrown\.dll|libashvault|ashvault\.(dat|gdextension)'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">   109056  assets/.godot/mono/publish/x86_64/SaltCrown.dll
+   407600  lib/x86_64/libashvault.android.template_release.x86_64.so
+      632  assets/native/ashvault.gdextension
+      256  assets/rubbings/ashvault.dat</pre>
+<p>Stack híbrida: C# para o jogo, GDExtension nativa para o segredo, mais um arquivo de dados de 256 bytes (<em>rubbing</em>).</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">2</span>Extrair os três artefatos</h3>
+<div class="lbl">Comando</div>
+<pre>mkdir -p re/dll re/lib re/assets
+unzip -o -j SaltCrown.apk 'assets/.godot/mono/publish/x86_64/SaltCrown.dll' -d re/dll
+unzip -o -j SaltCrown.apk 'lib/x86_64/libashvault.android.template_release.x86_64.so' -d re/lib
+unzip -o -j SaltCrown.apk 'assets/rubbings/ashvault.dat' -d re/assets
+unzip -p SaltCrown.apk assets/native/ashvault.gdextension</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">Archive:  SaltCrown.apk
+  inflating: re/dll/SaltCrown.dll
+ extracting: re/lib/libashvault.android.template_release.x86_64.so
+  inflating: re/assets/ashvault.dat
+
+[configuration]
+entry_symbol = "saltcrown_library_init"
+compatibility_minimum = "4.7"
+reloadable = false
+
+[libraries]
+android.arm64.debug    = "res://native/libashvault.android.template_debug.arm64.so"
+android.arm64.release  = "res://native/libashvault.android.template_release.arm64.so"
+android.x86_64.debug   = "res://native/libashvault.android.template_debug.x86_64.so"
+android.x86_64.release = "res://native/libashvault.android.template_release.x86_64.so"
+windows.x86_64.debug   = "res://native/libashvault.windows.template_debug.x86_64.dll"
+windows.x86_64.release = "res://native/libashvault.windows.template_debug.x86_64.dll"</pre>
+<p>Atenção: os <code>.cs</code> dentro de <code>assets/scripts/</code> são stubs de 1 byte — o Godot mantém só os caminhos. O código real está no assembly.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">3</span>Desmontar o assembly e achar a espinha do desafio</h3>
+<div class="lbl">Comando</div>
+<pre>ikdasm re/dll/SaltCrown.dll &gt; re/dll/SaltCrown.il
+grep -n 'SaltCrownSpec\|SealedSpec\|AshVault\|admit_bucket\|RubbingPath' re/dll/SaltCrown.il | head</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">6072:  IL_0075:  call  uint32 SaltCrown.Mechanism.SaltCrownSpec::Measure(uint32,int32,uint32)
+6094:  IL_0091:  call  string SaltCrown.Mechanism.SaltCrownSpec::Unseal(uint32)
+19667: .class public abstract auto ansi sealed beforefieldinit SaltCrown.Mechanism.SaltCrownSpec
+19670:   .field private static initonly uint8[] SealedSpec
+21272:   .field public static literal string RubbingPath = "res://rubbings/ashvault.dat"
+21287:   IL_0007:  ldstr  "AshVault"
+21322:   IL_0058:  ldstr  "admit_bucket"</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">4</span>Ler a primitiva <code>Mix</code>, e <code>Measure</code>/<code>Unseal</code></h3>
+<div class="lbl">Comando</div>
+<pre>sed -n '19667,19800p' re/dll/SaltCrown.il | grep -E 'literal|ldc\.i4|shr\.un|xor|mul|ldstr|Mix\(|Measure|Unseal'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">  .field private static literal string Frame = "HTB"
+  .field public static literal uint32 Unmeasured = uint32(0x811C9DC5)   ; FNV offset
+
+  Measure(uint32 acc, int32 chokeIndex, uint32 phaseBucket)
+    acc = Mix(acc, chokeIndex)
+    acc = Mix(acc, phaseBucket)
+
+  Unseal(uint32 measured)
+    IL_0015:  call  uint32 SaltCrownSpec::Mix(uint32,uint32)   ; stream = Mix(stream, i)
+    IL_0025:  ldc.i4.s   24
+    IL_0027:  shr.un                                           ; stream &gt;&gt; 24
+    IL_0029:  xor                                              ; ^ SealedSpec[i]
+    IL_003a:  ldstr      "HTB{"
+    IL_004a:  ldstr      "}"
+
+  Mix(uint32 h, uint32 v)
+    IL_0002:  xor                          ; h ^= v
+    IL_0006:  ldc.i4     0x1000193         ; h *= FNV prime
+    IL_0010:  ldc.i4.s   15 / shr.un / xor ; h ^= h &gt;&gt; 15
+    IL_0017:  ldc.i4     0x85ebca77        ; h *= 0x85EBCA77
+    IL_0021:  ldc.i4.s   13 / shr.un / xor ; h ^= h &gt;&gt; 13</pre>
+</div>
+
+<div class="step">
+<h3><span class="stepno">5</span>Extrair o <code>SealedSpec</code> (24 bytes)</h3>
+<div class="lbl">Comando</div>
+<pre>grep -n '__StaticArrayInitTypeSize=24' re/dll/SaltCrown.il | tail -1
+
+python3 -c "
+d = open('re/dll/SaltCrown.dll','rb').read()
+t = bytes.fromhex('75c9ab6b9a53cfbf1fe97e4a939425e029cf87a9c280dedc')
+print('offset:', hex(d.find(t)), '| bytes:', d[0x1a490:0x1a490+24].hex())"</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">31218:  .field static assembly initonly class '&lt;PrivateImplementationDetails&gt;'/'__StaticArrayInitTypeSize=24'
+        '2F5F0671439C051A06C5ED3315202DA8DA8807DDA81B11A4F19891D9C975772B' at I_0001C290
+
+offset: 0x1a490 | bytes: 75c9ab6b9a53cfbf1fe97e4a939425e029cf87a9c280dedc</pre>
+<p>24 bytes selados; com o <code>HTB{</code> + <code>}</code> adicionados por <code>Unseal</code>, a flag terá 29 caracteres.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">6</span>Descobrir o que alimenta o acumulador — <code>Director.Forge</code></h3>
+<div class="lbl">Comando</div>
+<pre>sed -n '6020,6095p' re/dll/SaltCrown.il | grep -E 'ldc\.i4|Where|OrderBy|get_Bites|get_ChokeIndex|PhaseBucket|Measure|Unseal'
+sed -n '5658,5677p' re/dll/SaltCrown.il | grep -E 'callvirt|b__30'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">IL_0000:  ldc.i4     0x811c9dc5                     ; acc = Unmeasured
+IL_002b:  call  ...Enumerable::Where&lt;ShardSeat&gt;(...)      ; b__30_0
+IL_004f:  call  ...Enumerable::OrderBy&lt;ShardSeat,int32&gt;(...) ; b__30_1
+IL_0065:  callvirt   instance int32 ShardSeat::get_ChokeIndex()
+IL_0070:  call       uint32 Tolerances::PhaseBucket(int32)
+IL_0075:  call       uint32 SaltCrownSpec::Measure(uint32,int32,uint32)
+IL_0091:  call       string SaltCrownSpec::Unseal(uint32)
+
+'&lt;Forge&gt;b__30_0'(ShardSeat s):  callvirt instance bool  ShardSeat::get_Bites()
+'&lt;Forge&gt;b__30_1'(ShardSeat s):  callvirt instance int32 ShardSeat::get_ChokeIndex()</pre>
+<p>Portanto: pegue os assentos com <code>Bites == true</code>, ordene por <code>ChokeIndex</code> crescente e, para cada um, acumule <code>Measure(acc, choke, PhaseBucket(choke))</code>.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">7</span>Seguir <code>PhaseBucket</code> até o código nativo</h3>
+<div class="lbl">Comando</div>
+<pre>sed -n '21181,21190p' re/dll/SaltCrown.il
+sed -n '21270,21295p' re/dll/SaltCrown.il | grep -E 'RubbingPath|ldstr|Call|ChokeCount|literal'
+grep -n 'literal int32 ChokeCount\|literal float32 MaxBitingHalfWidth' re/dll/SaltCrown.il</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">  PhaseBucket(int32 index) cil managed
+    IL_0001:  call  uint32 SaltCrown.Mechanism.WearLattice::AdmitBucket(int32)
+
+  .field public static literal string RubbingPath = "res://rubbings/ashvault.dat"
+  IL_0007:  ldstr      "AshVault"                  ; ClassDB.Instantiate
+  IL_0058:  ldstr      "admit_bucket"              ; _vault.Call("admit_bucket", rubbing, choke)
+
+21276:  .field public static literal int32   ChokeCount = int32(0x00000008)
+21277:  .field public static literal float32 MaxBitingHalfWidth = float32(8.1)</pre>
+<p>São 8 chokes (0–7) e o bucket de cada um vem de <code>AshVault.admit_bucket(ashvault.dat, choke)</code>, no <code>.so</code>.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">8</span>Reverter <code>admit_bucket</code> no binário nativo</h3>
+<p>A função está por volta de <code>0x1dc60</code>. São três blocos: semeadura FNV por lane, 4096 rodadas de difusão e a extração final de um byte.</p>
+<div class="lbl">Comando</div>
+<pre>objdump -d --no-show-raw-insn --start-address=0x1dc8c --stop-address=0x1ddd8 \
+  re/lib/libashvault.android.template_release.x86_64.so | sed -n '5,90p'</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">; --- semeadura: 64 lanes, FNV-1a com (byte + lane), com h ^= h &gt;&gt; 11 ---
+    1dc8c:	mov    $0x811c9dc5,%edi
+    1dca0:	movzbl (%rax,%r8,1),%r9d
+    1dca5:	add    %esi,%r9d                  ; byte + lane
+    1dca8:	xor    %edi,%r9d
+    1dcab:	imul   $0x1000193,%r9d,%edi       ; * FNV prime
+    1dcbe:	shr    $0xb,%edi
+    1dcc1:	xor    %r9d,%edi                  ; h ^= h &gt;&gt; 11
+    1dc86:	cmp    $0x40,%rsi                 ; 64 lanes
+
+; --- difusao: 0x1000 rodadas sobre as 64 lanes ---
+    1dd20:	lea    -0x1(%rax),%ecx
+    1dd23:	and    $0x3f,%ecx                 ; lane-1 mod 64
+    1dd38:	rol    $0x7,%edx                  ; rol(state[lane-1], 7)
+    1dd3b:	rol    $0x1b,%esi                 ; rol(state[lane+1], 27)
+    1dd3e:	xor    %edx,%esi
+    1dd40:	xor    %edi,%esi                  ; ^ state[lane]
+    1dd42:	imul   $0x85ebca77,%esi,%edx
+    1dd48:	add    %r12d,%edx                 ; + constante da rodada
+    1dd4b:	add    %eax,%edx                  ; + lane
+    1dd4f:	shr    $0xf,%esi / xor            ; ^= &gt;&gt; 15
+    1dd54:	rol    $0xd,%edi                  ; rol(state[lane], 13)
+    1dd57:	imul   $0xc2b2ae3d,%esi,%edx
+    1dd5d:	xor    %edx,%edi
+    1dd61:	shr    $0x10,%edx / xor           ; ^= &gt;&gt; 16
+    1dd88:	add    $0xffffffff9e3779b9,%r12   ; rc += 0x9E3779B9
+    1dd8f:	cmp    $0x1000,%ebp               ; 4096 rodadas
+
+; --- extracao do bucket ---
+    1dd9b:	lea    0x0(,%rbx,8),%eax
+    1dda2:	sub    %ebx,%eax
+    1dda4:	add    $0x3,%eax                  ; first  = (7*choke + 3) &amp; 63
+    1dda7:	lea    (%rbx,%rbx,2),%ecx
+    1ddaa:	shl    $0x3,%ecx
+    1ddad:	sub    %ebx,%ecx
+    1ddaf:	add    $0x29,%ecx                 ; second = (23*choke + 41) &amp; 63
+    1ddbc:	rol    $0xb,%ecx                  ; rol(state[second], 11)
+    1ddc2:	xor    0x100(%rsp,%rax,4),%ecx    ; ^ state[first]
+    1ddcb:	shr    $0xd,%eax
+    1ddce:	shr    $0x5,%ecx
+    1ddd1:	xor    %eax,%ecx                  ; (v &gt;&gt; 5) ^ (v &gt;&gt; 13)
+    1ddd3:	movzbl %cl,%eax                   ; &amp; 0xFF</pre>
+<p>Note que <code>8·x − x = 7x</code> e <code>(3x·8) − x = 23x</code>: daí os índices <code>(7·choke+3) &amp; 63</code> e <code>(23·choke+41) &amp; 63</code>. Tudo isso está reimplementado em <code>admit_bucket()</code> no <code>solve.py</code>.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">9</span>Determinar quais assentos mordem</h3>
+<p><code>ShardSeat.Bites</code> depende da geometria em <code>Tolerances</code>: <code>ChokeZ(i) = 14 − 6i</code>, e a meia-largura da coluna interpolada entre 9.5 e 5.2 tem de caber em <code>MaxBitingHalfWidth = 8.1</code>.</p>
+<div class="lbl">Comando</div>
+<pre>python3 - &lt;&lt;'EOF'
+inv_lerp = lambda a, b, v: (v - a) / (b - a)
+lerp     = lambda a, b, t: a + (b - a) * t
+for i in range(8):
+    z  = 14 - 6 * i                                  # Tolerances.ChokeZ
+    t  = min(max(inv_lerp(14, -40, z), 0.0), 1.0)    # Tolerances.HalfWidthAt
+    hw = lerp(9.5, 5.2, t)
+    print(f"choke {i}: z={z:6.1f}  halfwidth={hw:6.3f}  bites={hw &lt;= 8.1}")
+EOF</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">choke 0: z=  14.0  halfwidth= 9.500  bites=False
+choke 1: z=   8.0  halfwidth= 9.022  bites=False
+choke 2: z=   2.0  halfwidth= 8.544  bites=False
+choke 3: z=  -4.0  halfwidth= 8.067  bites=True
+choke 4: z= -10.0  halfwidth= 7.589  bites=True
+choke 5: z= -16.0  halfwidth= 7.111  bites=True
+choke 6: z= -22.0  halfwidth= 6.633  bites=True
+choke 7: z= -28.0  halfwidth= 6.156  bites=True</pre>
+<p>Cinco assentos mordem: <code>{3,4,5,6,7}</code>. O solver não precisa confiar nessa dedução — ele varre as 56 combinações de <code>C(8,5)</code> e aceita a que produzir um plaintext totalmente imprimível, o que converge para o mesmo conjunto.</p>
+</div>
+
+<div class="step">
+<h3><span class="stepno">10</span>Rodar o solver</h3>
+<div class="lbl">Comando</div>
+<pre>python3 solve.py re/assets/ashvault.dat --seat-count 5</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">[+] Buckets: 95 54 68 b2 1a 06 65 ea
+[+] Chokes:  3,4,5,6,7
+[+] Flag:    HTB{p3rf3ct_f4c3_wr0ng_sp1n3}</pre>
+<p>Uma única combinação sobrevive ao filtro de imprimibilidade — os buckets confirmam que a reimplementação da esponja bate com o código nativo.</p>
+</div>
+
+<div class="flag">HTB{p3rf3ct_f4c3_wr0ng_sp1n3}</div>
+</section>
+
+<h2>Observações finais</h2>
+<div class="notice">
+<p style="margin-bottom:8px"><strong>O par Proofmark / SaltCrown é deliberado.</strong> As flags <code>tru3_sp1n3</code> e <code>wr0ng_sp1n3</code> partilham o prefixo <code>p3rf3ct_f4c3</code>: os dois desafios mostram a mesma face perfeita (uma UI que valida entradas) sobre espinhas opostas. Em Proofmark, a validação "correta" do jogo é justamente o que impede alcançar o estado premiado — a solução é ignorar a UI e falar direto com a biblioteca. Em SaltCrown, a geometria da cena é que decide silenciosamente o segredo.</p>
+<p style="margin-bottom:0"><strong>Padrão recorrente da trilha.</strong> Nos três casos o segredo nunca aparece como literal <code>HTB{...}</code>: é sempre um blob curto (24, 28 ou 56 bytes) desfeito por um keystream barato derivado de um estado que o jogo <em>deveria</em> produzir. Achar o blob é fácil; o trabalho está em recuperar o estado — invertendo um PRNG bijetivo, emulando uma VM ou reimplementando uma esponja nativa.</p>
+</div>
+
+<h2>Apêndice — solvers</h2>
+<p>Os três scripts usados, já validados nas execuções acima:</p>
+<ul>
+  <li><code>Overstrike/solve.py</code> — inverte o SplitMix64 e testa as variações de contador do keystream SHA-256.</li>
+  <li><code>Proofmark/solve.py</code> — emula <code>reseal()</code> e <code>submit()</code> com Unicorn e reproduz <code>certificate()</code> em Python. (Cópia idêntica também vive em <code>SaltCrown/proofmark_solve.py</code>, de onde foi desenvolvido.)</li>
+  <li><code>SaltCrown/solve.py</code> — reimplementa <code>AshVault::admit_bucket</code> e varre <code>C(8,5)</code>.</li>
+  <li><code>Proofmark/re/gdc_ident.py</code> — extrator de identificadores <code>.gdc</code> (passo 4 do Proofmark).</li>
+</ul>
+<div class="lbl">Comando</div>
+<pre>find ~/Desktop/CTF/CyberApocalpise -maxdepth 2 -name '*solve*.py' -printf '%s\t%p\n' | sort</pre>
+<div class="lbl">Resposta</div>
+<pre class="out">3603	/home/t0x1n/Desktop/CTF/CyberApocalpise/SaltCrown/solve.py
+3621	/home/t0x1n/Desktop/CTF/CyberApocalpise/Overstrike/solve.py
+5579	/home/t0x1n/Desktop/CTF/CyberApocalpise/Proofmark/solve.py
+5579	/home/t0x1n/Desktop/CTF/CyberApocalpise/SaltCrown/proofmark_solve.py</pre>
+
+</main>
+<footer>
+Cyber Apocalypse — trilha mobile · análise estática offline dos três APKs · uso autorizado (CTF).<br>
+Todas as saídas deste relatório foram produzidas pela execução real dos comandos listados.
+</footer>
+</body>
+</html>

