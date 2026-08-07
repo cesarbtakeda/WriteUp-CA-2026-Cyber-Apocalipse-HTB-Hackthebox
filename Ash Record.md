@@ -1,3 +1,5 @@
+## Resolvido por Doz
+
 
 ```python
 # Read the first line: N P min_gap
