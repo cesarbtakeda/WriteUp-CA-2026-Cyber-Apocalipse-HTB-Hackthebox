@@ -1,3 +1,5 @@
+## Resolvido por Doz
+
 
 **Reconhecimento**
 **interact.py**
