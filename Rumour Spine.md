@@ -1,3 +1,5 @@
+## Resolvido por Doz
+
 ```python
 # Read the first line: N E S T
 n = input().split()
