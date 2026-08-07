@@ -1,3 +1,4 @@
+## Resolvido por Doz 
 
 ```python
 # Read the first line: N (witnesses), M (seal marks), Q (disputes / queries)
