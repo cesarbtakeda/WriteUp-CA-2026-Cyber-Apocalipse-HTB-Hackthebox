@@ -1,5 +1,6 @@
 
-# PhantomSec: Cesar Augusto B. (t0x1n), DOZZ (Z), Joao Vitor V (Eternal), Gabriel C. (Maestro), Nathan (Parasyte)
+## PhantomSec: Cesar Augusto B. (t0x1n), DOZZ (Z), 
+## Joao Vitor V (Eternal), Gabriel C. (Maestro), Nathan (Parasyte)
 
 #
 
